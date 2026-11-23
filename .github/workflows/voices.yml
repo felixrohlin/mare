@@ -1,0 +1,32 @@
+name: Generate voice clips
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'tools/**', '.github/workflows/voices.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: voices
+jobs:
+  voices:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install Piper and ffmpeg
+        run: |
+          pip install piper-tts
+          which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: List sentences
+        run: node tools/phrases.mjs
+      - name: Generate clips
+        run: python tools/make_audio.py
+      - name: Commit clips
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio tools/phrases.json
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "Generate voice clips"
+          git push

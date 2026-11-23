@@ -1,12 +1,19 @@
-// Maré offline cache. Bump VERSION after changing any file so phones pick up the update.
-const VERSION='mare-v1';
+// Maré offline cache. Bump VERSION after changing any file.
+const VERSION='mare-v2';
 const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET')return;
-  e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(hit=>hit||fetch(e.request).then(res=>{
-    if(res.ok&&new URL(e.request.url).origin===location.origin){const copy=res.clone();caches.open(VERSION).then(c=>c.put(e.request,copy))}
+  const req=e.request;if(req.method!=='GET')return;
+  // The app page: try the network first (so updates arrive straight away), fall back to the saved copy when offline.
+  if(req.mode==='navigate'){
+    e.respondWith(Promise.race([fetch(req),new Promise((_,rej)=>setTimeout(rej,3000))])
+      .then(res=>{const copy=res.clone();caches.open(VERSION).then(c=>c.put('./index.html',copy));return res})
+      .catch(()=>caches.match('./index.html',{ignoreSearch:true}).then(r=>r||caches.match('./'))));
+    return;
+  }
+  e.respondWith(caches.match(req,{ignoreSearch:true}).then(hit=>hit||fetch(req).then(res=>{
+    if(res.ok&&new URL(req.url).origin===location.origin){const copy=res.clone();caches.open(VERSION).then(c=>c.put(req,copy))}
     return res;
-  }).catch(()=>caches.match('./index.html'))));
+  })));
 });

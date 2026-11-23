@@ -122,6 +122,11 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
 .dlg h3{margin:0;font-size:24px}
 .ages{display:flex;gap:8px}.ages button{flex:1;background:var(--card);border-radius:18px;padding:12px 4px;font-weight:800;font-size:20px;border:3px solid transparent;min-height:56px}
 .ages button.on{border-color:var(--coral)}
+.langs{display:flex;flex-wrap:wrap;gap:8px;padding:16px 18px 0}
+.langs button{background:var(--card);border-radius:22px;padding:10px 16px;min-height:48px;font-weight:800;font-size:17px;box-shadow:0 3px 0 var(--line);border:3px solid transparent}
+.langs button.on{border-color:var(--coral)}
+.pcard .play{margin-top:4px;background:var(--coral);color:#fff;font-weight:800;font-size:19px;border-radius:22px;padding:8px 20px;box-shadow:0 4px 0 #c44a30}
+.whofoot{padding:0 18px 18px;display:flex;justify-content:flex-end}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(min-width:700px){.acts{grid-template-columns:repeat(3,minmax(0,1fr))}.ans{max-width:760px;margin:0 auto;width:100%}}
 </style>
@@ -138,15 +143,17 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
 
 <section id="who" class="scr">
  <div class="sea"><svg viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14Q50 0 100 14T200 14T300 14T400 14V28H0Z"/></svg></div>
- <div class="top"><div><h1>Maré</h1><p class="sub" id="whoQ">Who's playing?</p></div><svg class="crab" viewBox="0 0 120 100"><use href="#crab"/><path class="mouth" d="M52 68Q60 76 68 68" stroke="#7a2412" stroke-width="4" fill="none" stroke-linecap="round"/></svg></div>
+ <div class="top"><div><h1>Maré</h1><p class="sub" id="whoQ">Who's playing?</p></div><svg class="crab" viewBox="0 0 120 100" data-say><use href="#crab"/><path class="mouth" d="M52 68Q60 76 68 68" stroke="#7a2412" stroke-width="4" fill="none" stroke-linecap="round"/></svg></div>
+ <div class="langs" id="langs"><button data-l="pt">Português</button><button data-l="sv">Svenska</button><button data-l="nl">Nederlands</button><button data-l="en">English</button></div>
  <div class="players" id="players"></div>
+ <div class="whofoot"><button class="btn ghost" id="gear0">Grown-ups</button></div>
 </section>
 
 <section id="home" class="scr">
  <div class="sea"><svg viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14Q50 0 100 14T200 14T300 14T400 14V28H0Z"/></svg></div>
  <div class="bar"><button class="icon" id="hBack" aria-label="Players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M15 5 8 12l7 7"/></svg></button>
   <div class="tutor"><svg class="crab" viewBox="0 0 120 100" data-say><use href="#crab"/><path class="mouth" d="M52 68Q60 76 68 68" stroke="#7a2412" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div class="bub" id="hBub"></div></div>
-  <button class="icon hold" id="gear" aria-label="Grown-ups: press and hold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button></div>
+  <button class="icon" id="gear" aria-label="Grown-ups"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button></div>
  <div class="acts" id="acts"></div>
  <div class="shelf" id="shelf"></div>
 </section>
@@ -175,13 +182,14 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
   <h3>Language and voice</h3>
   <div class="row"><select id="lang"><option value="en">English</option><option value="pt">Português (PT)</option><option value="sv">Svenska</option><option value="nl">Nederlands</option></select>
    <label class="row" style="margin:0"><input type="checkbox" id="voiceOn" style="min-height:auto;width:24px;height:24px"> Spoken tutor</label>
+   <label class="row" style="margin:0"><input type="checkbox" id="sfxOn" style="min-height:auto;width:24px;height:24px"> Sound effects</label>
    <button class="btn ghost" id="vTest">Test voice</button></div>
   <p class="note" id="vInfo"></p>
   <h3>Players</h3>
   <div id="gPlayers"></div>
   <button class="btn ghost" id="gAdd">+ Add player</button>
   <h3>Offline use</h3>
-  <p class="note">Installed from its own web address and added to the home screen, Maré runs with no connection: everything (pictures, sounds, progress) lives on the phone. The voice uses the phone's built-in text-to-speech; if the chosen language has no voice installed, add one in the phone's accessibility or speech settings.</p>
+  <p class="note">Installed from its own web address and added to the home screen, Maré runs with no connection: everything (pictures, sounds, progress) lives on the phone. The voice uses the phone's built-in text-to-speech. No sound? Turn the volume up, check the silent switch, and on iPhone download the language under Settings → Accessibility → Spoken Content → Voices.</p>
  </div>
 </section>
 
@@ -192,14 +200,21 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
  <div class="row"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" id="pCancel">Cancel</button></div>
 </form></div>
 
+<div class="dlg" id="gate"><form id="gForm" onsubmit="return false">
+ <h3>Grown-ups only</h3>
+ <p style="margin:0" id="gQ"></p>
+ <div class="ages" id="gOpts"></div>
+ <button class="btn ghost" type="button" id="gCancel">Cancel</button>
+</form></div>
+
 <script>
 {
 const $=s=>document.querySelector(s);
 const L={
-en:{code:'en-GB',who:"Who's playing?",addP:'Add player',hi:'Hi {n}! What shall we play?',acts:{pop:'Bubbles',count:'Count',quick:'Quick look',more:'More',add:'Add',sub:'Take away'},popQ:'Pop the bubbles and count!',popDone:'{n} bubbles!',countQ:'How many are there?',quickQ:'Look quickly! How many?',moreQ:'Which side has more?',addA:'Here are {a}.',addB:'And {b} more!',addQ:'How many now?',subA:'Here are {a}.',subB:'Bye-bye to {b}!',subQ:'How many are left?',together:"Let's count together.",isN:"It's {n}!",isOne:"It's 1!",moreThan:'{a} is more than {b}.',praise:['Yes!','You got it!','Great counting!',"That's right!"],again:'Now you try.',star:'You earned a star!',home:'Home',up:"Ooh, let's try harder ones!"},
-pt:{code:'pt-PT',who:'Quem vai jogar?',addP:'Novo jogador',hi:'Olá {n}! O que vamos jogar?',acts:{pop:'Bolhas',count:'Contar',quick:'Olhar rápido',more:'Mais',add:'Somar',sub:'Tirar'},popQ:'Rebenta as bolhas e conta!',popDone:'{n} bolhas!',countQ:'Quantos há?',quickQ:'Olha depressa! Quantos são?',moreQ:'Que lado tem mais?',addA:'Aqui estão {a}.',addB:'E mais {b}!',addQ:'Quantos são agora?',subA:'Aqui estão {a}.',subB:'Adeus a {b}!',subQ:'Quantos ficaram?',together:'Vamos contar juntos.',isN:'São {n}!',isOne:'É 1!',moreThan:'{a} é mais do que {b}.',praise:['Sim!','Conseguiste!','Muito bem!','Isso mesmo!'],again:'Agora tu.',star:'Ganhaste uma estrela!',home:'Início',up:'Vamos tentar mais difíceis!'},
-sv:{code:'sv-SE',who:'Vem spelar?',addP:'Ny spelare',hi:'Hej {n}! Vad ska vi leka?',acts:{pop:'Bubblor',count:'Räkna',quick:'Snabbtitt',more:'Flest',add:'Plus',sub:'Minus'},popQ:'Smäll bubblorna och räkna!',popDone:'{n} bubblor!',countQ:'Hur många är det?',quickQ:'Titta snabbt! Hur många?',moreQ:'Vilken sida har flest?',addA:'Här är {a}.',addB:'Och {b} till!',addQ:'Hur många nu?',subA:'Här är {a}.',subB:'Hej då till {b}!',subQ:'Hur många är kvar?',together:'Vi räknar tillsammans.',isN:'Det är {n}!',isOne:'Det är 1!',moreThan:'{a} är fler än {b}.',praise:['Ja!','Du klarade det!','Jättebra!','Precis!'],again:'Nu får du försöka.',star:'Du fick en stjärna!',home:'Hem',up:'Nu provar vi svårare!'},
-nl:{code:'nl-NL',who:'Wie speelt er?',addP:'Nieuwe speler',hi:'Hoi {n}! Wat gaan we spelen?',acts:{pop:'Bellen',count:'Tellen',quick:'Snel kijken',more:'Meer',add:'Erbij',sub:'Eraf'},popQ:'Prik de bellen en tel!',popDone:'{n} bellen!',countQ:'Hoeveel zijn er?',quickQ:'Kijk snel! Hoeveel?',moreQ:'Welke kant heeft meer?',addA:'Hier zijn er {a}.',addB:'En nog {b} erbij!',addQ:'Hoeveel nu?',subA:'Hier zijn er {a}.',subB:'Dag dag, {b}!',subQ:'Hoeveel zijn er over?',together:'Laten we samen tellen.',isN:'Het zijn er {n}!',isOne:'Het is er 1!',moreThan:'{a} is meer dan {b}.',praise:['Ja!','Goed zo!','Knap gedaan!','Precies!'],again:'Probeer jij maar.',star:'Je hebt een ster verdiend!',home:'Thuis',up:'Nu proberen we moeilijkere!'}};
+en:{code:'en-GB',play:'Play',who:"Who's playing?",addP:'Add player',hi:'Hi {n}! What shall we play?',acts:{pop:'Bubbles',count:'Count',quick:'Quick look',more:'More',add:'Add',sub:'Take away'},popQ:'Pop the bubbles and count!',popDone:'{n} bubbles!',countQ:'How many are there?',quickQ:'Look quickly! How many?',moreQ:'Which side has more?',addA:'Here are {a}.',addB:'And {b} more!',addQ:'How many now?',subA:'Here are {a}.',subB:'Bye-bye to {b}!',subQ:'How many are left?',together:"Let's count together.",isN:"It's {n}!",isOne:"It's 1!",moreThan:'{a} is more than {b}.',praise:['Yes!','You got it!','Great counting!',"That's right!"],again:'Now you try.',star:'You earned a star!',home:'Home',up:"Ooh, let's try harder ones!"},
+pt:{code:'pt-PT',play:'Jogar',who:'Quem vai jogar?',addP:'Novo jogador',hi:'Olá {n}! O que vamos jogar?',acts:{pop:'Bolhas',count:'Contar',quick:'Olhar rápido',more:'Mais',add:'Somar',sub:'Tirar'},popQ:'Rebenta as bolhas e conta!',popDone:'{n} bolhas!',countQ:'Quantos há?',quickQ:'Olha depressa! Quantos são?',moreQ:'Que lado tem mais?',addA:'Aqui estão {a}.',addB:'E mais {b}!',addQ:'Quantos são agora?',subA:'Aqui estão {a}.',subB:'Adeus a {b}!',subQ:'Quantos ficaram?',together:'Vamos contar juntos.',isN:'São {n}!',isOne:'É 1!',moreThan:'{a} é mais do que {b}.',praise:['Sim!','Conseguiste!','Muito bem!','Isso mesmo!'],again:'Agora tu.',star:'Ganhaste uma estrela!',home:'Início',up:'Vamos tentar mais difíceis!'},
+sv:{code:'sv-SE',play:'Spela',who:'Vem spelar?',addP:'Ny spelare',hi:'Hej {n}! Vad ska vi leka?',acts:{pop:'Bubblor',count:'Räkna',quick:'Snabbtitt',more:'Flest',add:'Plus',sub:'Minus'},popQ:'Smäll bubblorna och räkna!',popDone:'{n} bubblor!',countQ:'Hur många är det?',quickQ:'Titta snabbt! Hur många?',moreQ:'Vilken sida har flest?',addA:'Här är {a}.',addB:'Och {b} till!',addQ:'Hur många nu?',subA:'Här är {a}.',subB:'Hej då till {b}!',subQ:'Hur många är kvar?',together:'Vi räknar tillsammans.',isN:'Det är {n}!',isOne:'Det är 1!',moreThan:'{a} är fler än {b}.',praise:['Ja!','Du klarade det!','Jättebra!','Precis!'],again:'Nu får du försöka.',star:'Du fick en stjärna!',home:'Hem',up:'Nu provar vi svårare!'},
+nl:{code:'nl-NL',play:'Spelen',who:'Wie speelt er?',addP:'Nieuwe speler',hi:'Hoi {n}! Wat gaan we spelen?',acts:{pop:'Bellen',count:'Tellen',quick:'Snel kijken',more:'Meer',add:'Erbij',sub:'Eraf'},popQ:'Prik de bellen en tel!',popDone:'{n} bellen!',countQ:'Hoeveel zijn er?',quickQ:'Kijk snel! Hoeveel?',moreQ:'Welke kant heeft meer?',addA:'Hier zijn er {a}.',addB:'En nog {b} erbij!',addQ:'Hoeveel nu?',subA:'Hier zijn er {a}.',subB:'Dag dag, {b}!',subQ:'Hoeveel zijn er over?',together:'Laten we samen tellen.',isN:'Het zijn er {n}!',isOne:'Het is er 1!',moreThan:'{a} is meer dan {b}.',praise:['Ja!','Goed zo!','Knap gedaan!','Precies!'],again:'Probeer jij maar.',star:'Je hebt een ster verdiend!',home:'Thuis',up:'Nu proberen we moeilijkere!'}};
 // level tables: max number per level (4 levels)
 const SK={pop:[3,4,6,10],count:[3,5,7,10],quick:[3,5,6,10],more:[5,6,8,10],add:[3,5,7,10],sub:[3,5,7,10]};
 const BY_AGE={2:['pop','count'],4:['count','quick','more','add','pop'],5:['count','quick','more','add','sub']};
@@ -218,34 +233,62 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 let P=null,epoch=0;
 
 /* ---------- voice ---------- */
-let voice=null;
+let voice=null;const live=[];const HAS_TTS='speechSynthesis' in window;
+const NOVELTY=/Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Junior|Ralph|Fred|Kathy|Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley/i;
 function pickVoice(){
- try{const vs=speechSynthesis.getVoices(),c=T().code,base=c.slice(0,2);
-  voice=vs.find(v=>v.lang.replace('_','-')===c&&v.localService)||vs.find(v=>v.lang.replace('_','-')===c)||vs.find(v=>v.lang.startsWith(base))||null;
+ try{const vs=speechSynthesis.getVoices().filter(v=>!NOVELTY.test(v.name)),c=T().code.toLowerCase(),base=c.slice(0,2);
+  const lg=v=>v.lang.replace('_','-').toLowerCase();
+  voice=vs.find(v=>lg(v)===c&&v.localService)||vs.find(v=>lg(v)===c)||vs.find(v=>lg(v).startsWith(base))||null;
  }catch(e){voice=null}
- const vi=$('#vInfo');if(vi)vi.textContent=!('speechSynthesis' in window)?'This browser has no speech. Text still shows in the bubble.':voice?('Voice: '+voice.name+' ('+voice.lang+')'):'No voice found for this language yet. The phone may still use a default one.';
+ const vi=$('#vInfo');if(vi)vi.textContent=!HAS_TTS?'This browser has no speech. Text still shows in the bubble.':voice?('Voice: '+voice.name+' ('+voice.lang+')'):'No voice listed for this language yet. Tap Test voice.';
 }
 try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 pickVoice();
+function utter(txt,rate){
+ const u=new SpeechSynthesisUtterance(txt);u.lang=T().code;if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;u.volume=1;
+ live.push(u);if(live.length>20)live.shift();
+ try{if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}
+ return u;
+}
+const busy=()=>{try{return speechSynthesis.speaking||speechSynthesis.pending}catch(e){return false}};
 function talk(on){document.querySelectorAll('.tutor,#who .top').forEach(t=>t.classList.toggle('talking',on))}
 function bubble(txt){const b=document.querySelector('.scr.on .bub');if(b)b.textContent=txt}
 function say(txt,show=true){
  if(show)bubble(txt);
  return new Promise(res=>{
   let done=false;const fin=()=>{if(!done){done=true;talk(false);res()}};
-  if(!S.voice||!('speechSynthesis' in window)){setTimeout(fin,500+txt.length*40);return}
-  try{const u=new SpeechSynthesisUtterance(txt);u.lang=T().code;if(voice)u.voice=voice;u.rate=.88;u.pitch=1.15;
-   u.onend=fin;u.onerror=fin;talk(true);speechSynthesis.speak(u);setTimeout(fin,1500+txt.length*110)}catch(e){fin()}
+  if(!S.voice||!HAS_TTS){setTimeout(fin,500+txt.length*40);return}
+  try{const u=utter(txt,.9);u.onend=fin;u.onerror=fin;talk(true);speechSynthesis.speak(u);setTimeout(fin,1500+txt.length*110)}catch(e){fin()}
  });
 }
-function blurt(txt){try{if(S.voice&&'speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang=T().code;if(voice)u.voice=voice;u.rate=1;u.pitch=1.15;speechSynthesis.speak(u)}}catch(e){}}
-function hush(){epoch++;try{speechSynthesis.cancel()}catch(e){}talk(false)}
+function blurt(txt){
+ if(!S.voice||!HAS_TTS)return;
+ try{const go=()=>speechSynthesis.speak(utter(txt,1));if(busy()){speechSynthesis.cancel();setTimeout(go,60)}else go()}catch(e){}
+}
+function hush(){epoch++;try{if(busy())speechSynthesis.cancel()}catch(e){}talk(false)}
+/* sound effects (Web Audio, no files) */
+let ac=null;
+function actx(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(ac&&ac.state!=='running'){try{ac.resume()}catch(e){}}return ac}
+function tone(f,d,type,vol,when=0,slide=0){const a=actx();if(!a)return;const t=a.currentTime+when,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(f*slide,t+d);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SFX={pop:()=>tone(500,.13,'sine',.25,0,2.4),tap:()=>tone(540,.09,'triangle',.18),yes:()=>{tone(660,.14,'triangle',.18);tone(880,.16,'triangle',.18,.11);tone(1320,.26,'triangle',.14,.22)},no:()=>tone(330,.28,'sine',.16,0,.7),star:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.32,'triangle',.16,i*.11))};
+function sfx(k){if(S.sfx!==false)try{SFX[k]()}catch(e){}}
+/* iPhone only allows sound after a tap: unlock both speech and audio on the first touch */
+let unlocked=false;
+function unlock(){
+ actx();
+ if(unlocked)return;unlocked=true;
+ try{const a=actx();if(a){const b=a.createBuffer(1,1,22050),s=a.createBufferSource();s.buffer=b;s.connect(a.destination);s.start(0)}}catch(e){}
+ try{if(HAS_TTS){const u=utter(' ',1);u.volume=0;speechSynthesis.speak(u)}}catch(e){}
+ pickVoice();
+}
+['touchend','pointerup','click'].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
 
 /* ---------- screens ---------- */
 function show(id){hush();document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id))}
 function renderWho(){
  $('#whoQ').textContent=T().who;
- $('#players').innerHTML=S.players.map((p,i)=>`<button class="pcard" data-i="${i}"><span class="peb" style="background:${p.color}">${esc(p.name[0]||'?').toUpperCase()}</span><b>${esc(p.name)}</b><small><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-2px"><use href="#gstar"/></svg> ${p.stars}</small></button>`).join('')+`<button class="pcard new" id="newP"><span>+</span>${T().addP}</button>`;
+ document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
+ $('#players').innerHTML=S.players.map((p,i)=>`<button class="pcard" data-i="${i}"><span class="peb" style="background:${p.color}">${esc(p.name[0]||'?').toUpperCase()}</span><b>${esc(p.name)}</b><small><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-2px"><use href="#gstar"/></svg> ${p.stars}</small><span class="play">▶ ${T().play}</span></button>`).join('')+`<button class="pcard new" id="newP"><span>+</span>${T().addP}</button>`;
  show('who');
 }
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -303,13 +346,13 @@ async function next(){
   const n=rnd(Math.max(2,max-2),max);G.n=n;let c=0;
   const pos=grid(n,W,H,true);
   pos.forEach((p,i)=>{const b=document.createElement('button');b.className='bubb';const s2=p.s*(.8+Math.random()*.35);b.style.cssText=`left:${p.x}px;top:${p.y}px;width:${s2}px;height:${s2}px`;
-   b.onclick=async()=>{if(b.classList.contains('pop'))return;b.classList.add('pop');c++;blurt(String(c));bubble(String(c));
+   b.onclick=async()=>{if(b.classList.contains('pop'))return;b.classList.add('pop');sfx('pop');c++;blurt(String(c));bubble(String(c));
     if(c===n){await wait(700);if(ep!==epoch)return;mark(true);await say(fill(t.popDone,{n}));if(ep!==epoch)return;await wait(300);next()}};st.appendChild(b)});
   say(t.popQ);return;
  }
  if(G.k==='count'){
   const n=rnd(1,max);G.n=n;const els=items(st,grid(n,W,H,s.lv>=2),o);let c=0;
-  els.forEach(e=>e.onclick=()=>{if(e.classList.contains('done')||G.busy)return;c++;e.classList.add('done');e.querySelector('.tag').textContent=c;blurt(String(c))});
+  els.forEach(e=>e.onclick=()=>{if(e.classList.contains('done')||G.busy)return;c++;e.classList.add('done');sfx('tap');e.querySelector('.tag').textContent=c;blurt(String(c))});
   G.els=els;await say(t.countQ);if(ep!==epoch)return;ask(n,max);return;
  }
  if(G.k==='quick'){
@@ -350,8 +393,8 @@ function ask(n,max){
 }
 async function choose(v,btn){
  if(G.busy)return;G.busy=true;const t=T(),ep=epoch;
- if(v===G.n){btn.classList.add('yes');mark(G.first);if(G.cover)G.cover.style.opacity=0;await say(pick(t.praise));if(ep!==epoch)return;await wait(250);G.cover=null;return next()}
- btn.classList.add('no');const wasFirst=G.first;G.first=false;if(wasFirst)mark(false);
+ if(v===G.n){btn.classList.add('yes');sfx('yes');mark(G.first);if(G.cover)G.cover.style.opacity=0;await say(pick(t.praise));if(ep!==epoch)return;await wait(250);G.cover=null;return next()}
+ btn.classList.add('no');sfx('no');const wasFirst=G.first;G.first=false;if(wasFirst)mark(false);
  if(G.cover){G.cover.style.opacity=0;await wait(300)}
  if(G.k==='quick'){await say(t.together);if(ep!==epoch)return;const ds=[...document.querySelectorAll('.card .d')];for(let i=0;i<ds.length;i++){ds[i].style.background='var(--coral)';await say(String(i+1),false);if(ep!==epoch)return}}
  else await countAll(G.els,t);
@@ -367,8 +410,8 @@ async function countAll(els,t){
 }
 async function chooseMore(i){
  if(G.busy)return;G.busy=true;const t=T(),ep=epoch,right=G.a>G.b?0:1;
- if(i===right){G.trays[i].classList.add('pick');mark(G.first);await say(pick(t.praise));if(ep!==epoch)return;await wait(250);return next()}
- G.trays[i].classList.add('bad');if(G.first)mark(false);G.first=false;
+ if(i===right){G.trays[i].classList.add('pick');sfx('yes');mark(G.first);await say(pick(t.praise));if(ep!==epoch)return;await wait(250);return next()}
+ G.trays[i].classList.add('bad');sfx('no');if(G.first)mark(false);G.first=false;
  await countAll(G.L,t);if(ep!==epoch)return;await wait(300);
  G.R.forEach(e=>{e.classList.remove('done')});
  for(let k=0;k<G.R.length;k++){if(ep!==epoch)return;G.R[k].classList.add('lit','done');G.R[k].querySelector('.tag').textContent=k+1;bubble(String(k+1));await say(String(k+1),false);G.R[k].classList.remove('lit')}
@@ -386,12 +429,12 @@ function mark(ok){
 async function reward(){
  const t=T();P.stars++;P.stickers=P.stickers||[];P.stickers.push(pick(OBJ));save();
  $('#rTxt').textContent=t.star;$('#rCount').innerHTML=`<svg viewBox="0 0 100 100"><use href="#gstar"/></svg> ${P.stars}`;$('#rHome').textContent=t.home;
- show('reward');await say(t.star,false);if(G.up){G.up=false;await say(t.up,false)}
+ show('reward');sfx('star');await wait(700);await say(t.star,false);if(G.up){G.up=false;await say(t.up,false)}
 }
 
 /* ---------- grown-ups ---------- */
 function renderGrown(){
- $('#lang').value=S.lang;$('#voiceOn').checked=S.voice;pickVoice();
+ $('#lang').value=S.lang;$('#voiceOn').checked=S.voice;$('#sfxOn').checked=S.sfx!==false;pickVoice();
  $('#gPlayers').innerHTML=S.players.length?S.players.map((p,i)=>`<div class="pl"><div class="row" style="justify-content:space-between;margin:0"><b style="font-size:20px">${esc(p.name)} <span class="note">age ${p.age===2?'2–3':p.age===5?'5–7':'4'} · ${p.stars} stars</span></b><button class="btn ghost" data-del="${i}">Delete</button></div>
   <table><tr><th>Skill</th><th class="r">Level</th><th class="r">Right first try</th></tr>${BY_AGE[p.age].map(k=>{const s=p.skills[k];return `<tr><td>${L.en.acts[k]}</td><td class="r">${s?s.lv+1:1} / 4</td><td class="r">${s&&s.n?Math.round(s.ok/s.n*100)+'% of '+s.n:'not played'}</td></tr>`}).join('')}</table>
   <div class="row"><span class="note">Age group:</span>${[2,4,5].map(a=>`<button class="btn ghost" data-age="${i}:${a}" style="${p.age===a?'outline:3px solid var(--coral)':''}">${a===2?'2–3':a===5?'5–7':'4'}</button>`).join('')}</div></div>`).join(''):'<p class="note">No players yet.</p>';
@@ -403,8 +446,19 @@ $('#gPlayers').onclick=e=>{
  if(a){const [i,g]=a.dataset.age.split(':');S.players[+i].age=+g;save();renderGrown()}
 };
 $('#lang').onchange=e=>{S.lang=e.target.value;save();pickVoice()};
+$('#langs').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.lang=b.dataset.l;save();pickVoice();renderWho();say(T().who,false)};
 $('#voiceOn').onchange=e=>{S.voice=e.target.checked;save()};
-$('#vTest').onclick=()=>{bubble('');say(fill(T().isN,{n:3}),false)};
+$('#sfxOn').onchange=e=>{S.sfx=e.target.checked;save();sfx('yes')};
+$('#vTest').onclick=()=>{
+ const vi=$('#vInfo');sfx('tap');
+ if(!HAS_TTS){vi.textContent='This browser has no speech.';return}
+ try{if(busy())speechSynthesis.cancel()}catch(e){}
+ let started=false;const u=utter(fill(T().isN,{n:3}),.9);
+ u.onstart=()=>{started=true;vi.textContent='Speaking'+(voice?' with '+voice.name:'')+'. If you hear nothing, turn the volume up.'};
+ u.onerror=e=>{vi.textContent='Speech error: '+(e.error||'unknown')};
+ vi.textContent='Starting…';speechSynthesis.speak(u);
+ setTimeout(()=>{if(!started)vi.textContent='Speech did not start. Check the volume and the silent switch, then tap Test voice again. Voices found: '+(speechSynthesis.getVoices().length)},3000);
+};
 $('#gBack').onclick=()=>P&&S.players.includes(P)?renderHome():renderWho();
 $('#gAdd').onclick=()=>openAdd();
 
@@ -415,7 +469,9 @@ $('#pAge').onclick=e=>{const b=e.target.closest('button');if(!b)return;newAge=+b
 $('#pCancel').onclick=()=>$('#dlg').classList.remove('on');
 $('#pForm').onsubmit=e=>{e.preventDefault();const n=$('#pName').value.trim();if(!n)return;
  S.players.push({id:Date.now(),name:n,age:newAge,color:PCOL[S.players.length%PCOL.length],stars:0,stickers:[],skills:{}});save();
- $('#dlg').classList.remove('on');$('#grown').classList.contains('on')?renderGrown():renderWho()};
+ $('#dlg').classList.remove('on');
+ if($('#grown').classList.contains('on'))return renderGrown();
+ P=S.players[S.players.length-1];renderHome();say(fill(T().hi,{n:P.name}),false)};
 
 /* ---------- wiring ---------- */
 $('#players').onclick=e=>{const c=e.target.closest('.pcard');if(!c)return;if(c.id==='newP')return openAdd();P=S.players[+c.dataset.i];renderHome();say(fill(T().hi,{n:P.name}),false)};
@@ -425,11 +481,16 @@ $('#pBack').onclick=renderHome;
 $('#rMore').onclick=()=>startGame(G.k);
 $('#rHome').onclick=renderHome;
 document.querySelectorAll('[data-say]').forEach(c=>c.onclick=()=>{const b=document.querySelector('.scr.on .bub');if(b&&b.textContent)say(b.textContent,false)});
-const gear=$('#gear');let ht=null;
-const hs=e=>{e.preventDefault();gear.classList.add('going');ht=setTimeout(()=>{gear.classList.remove('going');renderGrown()},1500)};
-const he=()=>{clearTimeout(ht);gear.classList.remove('going')};
-gear.addEventListener('pointerdown',hs);['pointerup','pointerleave','pointercancel'].forEach(v=>gear.addEventListener(v,he));
-gear.addEventListener('contextmenu',e=>e.preventDefault());
+/* grown-ups gate: a sum a 4-year-old can't do, works with plain taps */
+function openGate(){
+ const a=rnd(3,9),b=rnd(3,9),ans=a*b,o=new Set([ans]);while(o.size<4)o.add(ans+pick([-a,a,-b,b,-1,1,10,-10]));
+ $('#gQ').textContent='What is '+a+' × '+b+'?';
+ $('#gOpts').innerHTML=[...o].sort(()=>Math.random()-.5).map(v=>`<button type="button" data-v="${v}">${v}</button>`).join('');
+ $('#gOpts').onclick=e=>{const x=e.target.closest('button');if(!x)return;$('#gate').classList.remove('on');if(+x.dataset.v===ans)renderGrown()};
+ $('#gate').classList.add('on');
+}
+$('#gCancel').onclick=()=>$('#gate').classList.remove('on');
+$('#gear').onclick=openGate;$('#gear0').onclick=openGate;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hush()});
 renderWho();
 try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}

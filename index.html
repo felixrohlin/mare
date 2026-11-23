@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Maré math</title>
+<meta name="theme-color" content="#0f7c8c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Maré">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* VOICE: warm, slow, encouraging; a beach-side tutor for 2 to 7 year olds
+   IDEA: counting shells and fish on the sand at low tide
+   PICTURE: the play field itself, sea band over sand, big tappable sea objects, a crab tutor who talks
+   COLOUR and TYPE: sand #f6e7c8, sea #0f7c8c, coral #ff6b4a; system rounded type, huge numerals
+   LAYOUT: tutor bar on top, sand stage in the middle, three giant answer buttons at the thumb */
+:root{color-scheme:light dark;
+--sand:light-dark(#f6e7c8,#2a2418);--sand2:light-dark(#ecd6ab,#211c13);
+--sea:light-dark(#0f7c8c,#0b4f5a);--sea2:light-dark(#2fa3b0,#0e6470);
+--ink:light-dark(#1d2a2e,#f4ecdc);--card:light-dark(#fffaf0,#352d1f);
+--coral:#ff6b4a;--gold:#f2b632;--ok:#2a9d6f;--line:light-dark(#d9c294,#4a3f2a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--sand);color:var(--ink);font:17px/1.4 ui-rounded,"SF Pro Rounded","Nunito","Varela Round",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.scr.on{display:flex}
+.sea{position:absolute;inset:0 0 auto 0;height:34%;background:linear-gradient(var(--sea),var(--sea2));z-index:-1}
+.sea svg{position:absolute;left:0;bottom:-1px;width:100%;height:28px}
+.sea svg path{fill:var(--sand)}
+h1{font-size:clamp(40px,12vw,64px);line-height:1;margin:0;color:#fff;letter-spacing:-.02em}
+.sub{color:#ffffffd9;margin:6px 0 0;font-size:17px}
+/* who */
+#who .top{padding:28px 22px 0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:30%}
+#who .crab{width:min(38vw,170px)}
+.players{flex:1;overflow:auto;padding:18px 18px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;align-content:start}
+.pcard{background:var(--card);border-radius:28px;padding:18px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 4px 0 var(--line);min-height:170px}
+.pcard .peb{width:84px;height:70px;border-radius:50% 46% 52% 44%/58% 52% 48% 42%;display:grid;place-items:center;color:#fff;font-size:38px;font-weight:800;box-shadow:inset -6px -8px 0 #0002,inset 6px 6px 0 #fff4}
+.pcard b{font-size:22px}.pcard small{opacity:.7}
+.pcard.new{border:3px dashed var(--line);background:none;box-shadow:none;justify-content:center;font-size:19px;font-weight:700}
+.pcard.new span{font-size:46px;line-height:1;color:var(--coral)}
+/* bar */
+.bar{display:flex;align-items:center;gap:8px;padding:10px 12px 4px}
+.icon{width:48px;height:48px;border-radius:50%;background:#ffffff33;color:#fff;display:grid;place-items:center;flex:none}
+.icon svg{width:26px;height:26px}
+.tutor{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.tutor .crab{width:66px;flex:none;cursor:pointer}
+.bub{background:#fff;color:#1d2a2e;border-radius:20px;padding:10px 14px;font-size:clamp(17px,4.6vw,22px);font-weight:700;line-height:1.2;position:relative;min-height:48px;display:flex;align-items:center;flex:1}
+.bub:before{content:"";position:absolute;left:-8px;top:50%;margin-top:-8px;border:8px solid transparent;border-left:0;border-right-color:#fff}
+.chip{background:#ffffff33;color:#fff;border-radius:22px;padding:6px 12px;font-weight:800;display:flex;gap:4px;align-items:center;flex:none;font-size:19px}
+.chip svg{width:22px;height:22px}
+/* home */
+.acts{flex:1;overflow:auto;padding:26px 16px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-content:start}
+.act{background:var(--card);border-radius:28px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 5px 0 var(--line);min-height:150px}
+.act svg.pic{width:88px;height:76px}
+.act b{font-size:21px}
+.pips{display:flex;gap:5px}.pips i{width:10px;height:10px;border-radius:50%;background:var(--line)}.pips i.on{background:var(--coral)}
+.act:active,.pcard:active,.opt:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+.shelf{padding:6px 16px 14px;display:flex;gap:4px;flex-wrap:wrap;min-height:44px;align-items:center}
+.shelf svg{width:30px;height:30px}
+.hold{position:relative}
+.hold:after{content:"";position:absolute;inset:-4px;border-radius:50%;border:3px solid #fff;clip-path:inset(0 100% 0 0);opacity:.9}
+.hold.going:after{transition:clip-path 1.5s linear;clip-path:inset(0 0 0 0)}
+/* play */
+.stage{flex:1;position:relative;margin:22px 10px 8px}
+.it{position:absolute;padding:0;transition:transform .5s cubic-bezier(.3,1.4,.5,1),opacity .6s,filter .3s}
+.it svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 5px 0 #0002)}
+.it .tag{position:absolute;right:-6%;top:-10%;min-width:34px;height:34px;border-radius:17px;background:var(--coral);color:#fff;font:800 20px/34px ui-rounded,system-ui;text-align:center;display:none;padding:0 6px}
+.it.done .tag{display:block}
+.it.lit{transform:scale(1.18)}
+.it.new{transform:translateX(130vw)}
+.it.gone{transform:translate(60vw,-20vh) scale(.5);opacity:.18}
+.tray{position:absolute;top:0;bottom:0;border-radius:30px;border:4px dashed transparent;transition:border-color .3s,background .3s}
+.tray.pick{border-color:var(--ok);background:#2a9d6f22}
+.tray.bad{border-color:var(--coral)}
+.bubb{position:absolute;border-radius:50%;background:radial-gradient(circle at 32% 30%,#fff 0 12%,#bfeef2 13% 40%,#6fd0dc 80%);box-shadow:inset -4px -6px 0 #0f7c8c55;transition:transform .25s,opacity .25s}
+.bubb.pop{transform:scale(1.6);opacity:0}
+.card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:30px;box-shadow:0 6px 0 var(--line)}
+.card .d{position:absolute;width:15%;aspect-ratio:1;border-radius:50%;background:var(--sea);transform:translate(-50%,-50%)}
+.cover{position:absolute;inset:0;border-radius:30px;background:var(--sea2);display:grid;place-items:center;color:#fff;font-size:80px;font-weight:800;transition:opacity .3s}
+.ans{display:flex;gap:12px;padding:6px 12px 16px;min-height:128px}
+.opt{flex:1;background:var(--card);border-radius:26px;box-shadow:0 6px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 4px;min-height:112px}
+.opt .n{font-size:clamp(48px,14vw,72px);font-weight:800;line-height:1}
+.opt .dots{display:grid;grid-template-columns:repeat(5,10px);gap:4px;justify-content:center}
+.opt .dots i{width:10px;height:10px;border-radius:50%;background:var(--sea)}
+.opt.hint{box-shadow:0 0 0 5px var(--ok),0 6px 0 var(--line);animation:nudge 1s infinite}
+.opt.no{opacity:.35}
+.opt.yes{background:var(--ok);color:#fff}
+.ans.hide .opt{visibility:hidden}
+@keyframes nudge{50%{transform:scale(1.06)}}
+.talking .mouth{animation:talk .25s infinite alternate}
+.mouth{transform-origin:60px 70px}
+@keyframes talk{to{transform:scaleY(2.2)}}
+/* reward */
+#reward{align-items:center;justify-content:center;text-align:center;gap:14px;background:var(--sea)}
+#reward .big{width:min(60vw,260px);animation:popin .7s cubic-bezier(.3,1.6,.5,1)}
+#reward h2{color:#fff;font-size:34px;margin:0;line-height:1.1;padding:0 20px}
+.btn{background:var(--coral);color:#fff;font-weight:800;font-size:22px;border-radius:30px;padding:14px 34px;min-height:56px;box-shadow:0 5px 0 #c44a30}
+.btn.ghost{background:var(--card);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:18px;padding:10px 20px;min-height:48px}
+@keyframes popin{from{transform:scale(.2) rotate(-40deg)}}
+/* grown-ups */
+#grown{background:var(--sand);overflow:auto;display:none}
+#grown.on{display:block}
+.gw{max-width:640px;margin:0 auto;padding:20px 18px 40px}
+.gw h2{font-size:30px;margin:6px 0 4px}.gw h3{margin:26px 0 8px;font-size:20px}
+.gw p{margin:6px 0;max-width:62ch}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+select,input{font:inherit;font-size:16px;padding:10px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-height:48px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:6px}
+td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.pl{background:var(--card);border-radius:22px;padding:14px 16px;margin:12px 0}
+.note{font-size:14px;opacity:.75}
+/* dialog */
+.dlg{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:20px;z-index:9}
+.dlg.on{display:flex}
+.dlg form{background:var(--sand);border-radius:28px;padding:22px;width:min(420px,100%);display:flex;flex-direction:column;gap:12px}
+.dlg h3{margin:0;font-size:24px}
+.ages{display:flex;gap:8px}.ages button{flex:1;background:var(--card);border-radius:18px;padding:12px 4px;font-weight:800;font-size:20px;border:3px solid transparent;min-height:56px}
+.ages button.on{border-color:var(--coral)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(min-width:700px){.acts{grid-template-columns:repeat(3,minmax(0,1fr))}.ans{max-width:760px;margin:0 auto;width:100%}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="shell" viewBox="0 0 100 100"><path d="M50 90 30 78Q6 50 24 26Q50 2 76 26Q94 50 70 78Z" fill="currentColor"/><path d="M50 88 32 26M50 88V12M50 88 68 26M50 88 18 48M50 88 82 48" stroke="#0003" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M38 80h24l-4 12H42Z" fill="currentColor"/><path d="M30 26Q50 8 70 26" stroke="#fff6" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
+ <symbol id="fish" viewBox="0 0 100 100"><path d="M8 50Q36 14 70 50Q36 86 8 50Z" fill="currentColor"/><path d="M64 50 94 28 88 50 94 72Z" fill="currentColor"/><path d="M30 34Q40 20 50 32" fill="currentColor"/><path d="M14 46Q34 26 56 40" stroke="#fff6" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="26" cy="47" r="7" fill="#fff"/><circle cx="24.5" cy="47" r="3.5" fill="#1d2a2e"/></symbol>
+ <symbol id="star" viewBox="0 0 100 100"><path d="M50 10 61 38 92 40 68 60 76 90 50 73 24 90 32 60 8 40 39 38Z" fill="currentColor" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/><g fill="#fff8"><circle cx="50" cy="30" r="3"/><circle cx="66" cy="46" r="3"/><circle cx="34" cy="46" r="3"/><circle cx="58" cy="64" r="3"/><circle cx="42" cy="64" r="3"/></g></symbol>
+ <symbol id="pebble" viewBox="0 0 100 100"><path d="M14 58Q10 30 42 22Q78 14 88 44Q96 74 60 82Q20 88 14 58Z" fill="currentColor"/><path d="M28 40Q40 28 58 28" stroke="#fff7" stroke-width="7" fill="none" stroke-linecap="round"/></symbol>
+ <symbol id="gstar" viewBox="0 0 100 100"><path d="M50 6 63 36 96 39 71 61 79 94 50 76 21 94 29 61 4 39 37 36Z" fill="#f2b632" stroke="#e09a12" stroke-width="5" stroke-linejoin="round"/><path d="M50 20 57 38" stroke="#fff9" stroke-width="6" stroke-linecap="round"/></symbol>
+ <symbol id="crab" viewBox="0 0 120 100"><g stroke="#c43d24" stroke-width="5" stroke-linecap="round" fill="none"><path d="M30 66 14 78M32 74 20 90M90 66 106 78M88 74 100 90M46 44 42 24M74 44 78 24"/></g><path d="M8 40Q2 22 18 18Q14 30 26 34Q28 46 16 50Q10 48 8 40Z" fill="#ff6b4a"/><path d="M112 40Q118 22 102 18Q106 30 94 34Q92 46 104 50Q110 48 112 40Z" fill="#ff6b4a"/><path d="M24 44Q22 48 30 60" stroke="#ff6b4a" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M96 44Q98 48 90 60" stroke="#ff6b4a" stroke-width="7" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="64" rx="36" ry="26" fill="#ff6b4a"/><path d="M34 56Q60 38 86 56" stroke="#fff5" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="42" cy="22" r="10" fill="#fff"/><circle cx="78" cy="22" r="10" fill="#fff"/><circle cx="44" cy="23" r="5" fill="#1d2a2e"/><circle cx="80" cy="23" r="5" fill="#1d2a2e"/><circle cx="44" cy="70" r="5" fill="#ff9d86"/><circle cx="76" cy="70" r="5" fill="#ff9d86"/></symbol>
+</svg>
+
+<section id="who" class="scr">
+ <div class="sea"><svg viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14Q50 0 100 14T200 14T300 14T400 14V28H0Z"/></svg></div>
+ <div class="top"><div><h1>Maré</h1><p class="sub" id="whoQ">Who's playing?</p></div><svg class="crab" viewBox="0 0 120 100"><use href="#crab"/><path class="mouth" d="M52 68Q60 76 68 68" stroke="#7a2412" stroke-width="4" fill="none" stroke-linecap="round"/></svg></div>
+ <div class="players" id="players"></div>
+</section>
+
+<section id="home" class="scr">
+ <div class="sea"><svg viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14Q50 0 100 14T200 14T300 14T400 14V28H0Z"/></svg></div>
+ <div class="bar"><button class="icon" id="hBack" aria-label="Players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M15 5 8 12l7 7"/></svg></button>
+  <div class="tutor"><svg class="crab" viewBox="0 0 120 100" data-say><use href="#crab"/><path class="mouth" d="M52 68Q60 76 68 68" stroke="#7a2412" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div class="bub" id="hBub"></div></div>
+  <button class="icon hold" id="gear" aria-label="Grown-ups: press and hold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button></div>
+ <div class="acts" id="acts"></div>
+ <div class="shelf" id="shelf"></div>
+</section>
+
+<section id="play" class="scr">
+ <div class="sea"><svg viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14Q50 0 100 14T200 14T300 14T400 14V28H0Z"/></svg></div>
+ <div class="bar"><button class="icon" id="pBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M15 5 8 12l7 7"/></svg></button>
+  <div class="tutor"><svg class="crab" viewBox="0 0 120 100" data-say><use href="#crab"/><path class="mouth" d="M52 68Q60 76 68 68" stroke="#7a2412" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div class="bub" id="pBub"></div></div>
+  <div class="chip" id="round"></div></div>
+ <div class="stage" id="stage"></div>
+ <div class="ans" id="ans"></div>
+</section>
+
+<section id="reward" class="scr">
+ <svg class="big" viewBox="0 0 100 100"><use href="#gstar"/></svg>
+ <h2 id="rTxt"></h2>
+ <div class="chip" id="rCount" style="font-size:24px"></div>
+ <div class="row" style="justify-content:center"><button class="btn" id="rMore">▶</button><button class="btn ghost" id="rHome"></button></div>
+</section>
+
+<section id="grown" class="scr">
+ <div class="gw">
+  <button class="btn ghost" id="gBack">← Back</button>
+  <h2>Grown-ups</h2>
+  <p>Maré adapts per child: three right in a row moves a skill up a level, two misses moves it down. A wrong answer never just says "wrong": the crab counts it out with them, then lets them try again.</p>
+  <h3>Language and voice</h3>
+  <div class="row"><select id="lang"><option value="en">English</option><option value="pt">Português (PT)</option><option value="sv">Svenska</option><option value="nl">Nederlands</option></select>
+   <label class="row" style="margin:0"><input type="checkbox" id="voiceOn" style="min-height:auto;width:24px;height:24px"> Spoken tutor</label>
+   <button class="btn ghost" id="vTest">Test voice</button></div>
+  <p class="note" id="vInfo"></p>
+  <h3>Players</h3>
+  <div id="gPlayers"></div>
+  <button class="btn ghost" id="gAdd">+ Add player</button>
+  <h3>Offline use</h3>
+  <p class="note">Installed from its own web address and added to the home screen, Maré runs with no connection: everything (pictures, sounds, progress) lives on the phone. The voice uses the phone's built-in text-to-speech; if the chosen language has no voice installed, add one in the phone's accessibility or speech settings.</p>
+ </div>
+</section>
+
+<div class="dlg" id="dlg"><form id="pForm">
+ <h3>New player</h3>
+ <input id="pName" maxlength="14" placeholder="Name" autocomplete="off" required>
+ <div class="ages" id="pAge"><button type="button" data-a="2">2–3</button><button type="button" data-a="4" class="on">4</button><button type="button" data-a="5">5–7</button></div>
+ <div class="row"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" id="pCancel">Cancel</button></div>
+</form></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const L={
+en:{code:'en-GB',who:"Who's playing?",addP:'Add player',hi:'Hi {n}! What shall we play?',acts:{pop:'Bubbles',count:'Count',quick:'Quick look',more:'More',add:'Add',sub:'Take away'},popQ:'Pop the bubbles and count!',popDone:'{n} bubbles!',countQ:'How many are there?',quickQ:'Look quickly! How many?',moreQ:'Which side has more?',addA:'Here are {a}.',addB:'And {b} more!',addQ:'How many now?',subA:'Here are {a}.',subB:'Bye-bye to {b}!',subQ:'How many are left?',together:"Let's count together.",isN:"It's {n}!",isOne:"It's 1!",moreThan:'{a} is more than {b}.',praise:['Yes!','You got it!','Great counting!',"That's right!"],again:'Now you try.',star:'You earned a star!',home:'Home',up:"Ooh, let's try harder ones!"},
+pt:{code:'pt-PT',who:'Quem vai jogar?',addP:'Novo jogador',hi:'Olá {n}! O que vamos jogar?',acts:{pop:'Bolhas',count:'Contar',quick:'Olhar rápido',more:'Mais',add:'Somar',sub:'Tirar'},popQ:'Rebenta as bolhas e conta!',popDone:'{n} bolhas!',countQ:'Quantos há?',quickQ:'Olha depressa! Quantos são?',moreQ:'Que lado tem mais?',addA:'Aqui estão {a}.',addB:'E mais {b}!',addQ:'Quantos são agora?',subA:'Aqui estão {a}.',subB:'Adeus a {b}!',subQ:'Quantos ficaram?',together:'Vamos contar juntos.',isN:'São {n}!',isOne:'É 1!',moreThan:'{a} é mais do que {b}.',praise:['Sim!','Conseguiste!','Muito bem!','Isso mesmo!'],again:'Agora tu.',star:'Ganhaste uma estrela!',home:'Início',up:'Vamos tentar mais difíceis!'},
+sv:{code:'sv-SE',who:'Vem spelar?',addP:'Ny spelare',hi:'Hej {n}! Vad ska vi leka?',acts:{pop:'Bubblor',count:'Räkna',quick:'Snabbtitt',more:'Flest',add:'Plus',sub:'Minus'},popQ:'Smäll bubblorna och räkna!',popDone:'{n} bubblor!',countQ:'Hur många är det?',quickQ:'Titta snabbt! Hur många?',moreQ:'Vilken sida har flest?',addA:'Här är {a}.',addB:'Och {b} till!',addQ:'Hur många nu?',subA:'Här är {a}.',subB:'Hej då till {b}!',subQ:'Hur många är kvar?',together:'Vi räknar tillsammans.',isN:'Det är {n}!',isOne:'Det är 1!',moreThan:'{a} är fler än {b}.',praise:['Ja!','Du klarade det!','Jättebra!','Precis!'],again:'Nu får du försöka.',star:'Du fick en stjärna!',home:'Hem',up:'Nu provar vi svårare!'},
+nl:{code:'nl-NL',who:'Wie speelt er?',addP:'Nieuwe speler',hi:'Hoi {n}! Wat gaan we spelen?',acts:{pop:'Bellen',count:'Tellen',quick:'Snel kijken',more:'Meer',add:'Erbij',sub:'Eraf'},popQ:'Prik de bellen en tel!',popDone:'{n} bellen!',countQ:'Hoeveel zijn er?',quickQ:'Kijk snel! Hoeveel?',moreQ:'Welke kant heeft meer?',addA:'Hier zijn er {a}.',addB:'En nog {b} erbij!',addQ:'Hoeveel nu?',subA:'Hier zijn er {a}.',subB:'Dag dag, {b}!',subQ:'Hoeveel zijn er over?',together:'Laten we samen tellen.',isN:'Het zijn er {n}!',isOne:'Het is er 1!',moreThan:'{a} is meer dan {b}.',praise:['Ja!','Goed zo!','Knap gedaan!','Precies!'],again:'Probeer jij maar.',star:'Je hebt een ster verdiend!',home:'Thuis',up:'Nu proberen we moeilijkere!'}};
+// level tables: max number per level (4 levels)
+const SK={pop:[3,4,6,10],count:[3,5,7,10],quick:[3,5,6,10],more:[5,6,8,10],add:[3,5,7,10],sub:[3,5,7,10]};
+const BY_AGE={2:['pop','count'],4:['count','quick','more','add','pop'],5:['count','quick','more','add','sub']};
+const START={2:{},4:{},5:{count:2,quick:1,more:1}};
+const OBJ=[['shell','#ff7a59'],['fish','#f2b632'],['star','#ff5d73'],['pebble','#7d8f9c']];
+const PCOL=['#0f7c8c','#ff6b4a','#2a9d6f','#8a5cc2','#e09a12'];
+const ROUNDS=5;
+let S={lang:'en',voice:true,players:[]};
+try{const j=localStorage.getItem('mare');if(j)S=Object.assign(S,JSON.parse(j))}catch(e){}
+const save=()=>{try{localStorage.setItem('mare',JSON.stringify(S))}catch(e){}};
+const T=()=>L[S.lang]||L.en;
+const fill=(s,o)=>s.replace(/\{(\w)\}/g,(_,k)=>o[k]);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+let P=null,epoch=0;
+
+/* ---------- voice ---------- */
+let voice=null;
+function pickVoice(){
+ try{const vs=speechSynthesis.getVoices(),c=T().code,base=c.slice(0,2);
+  voice=vs.find(v=>v.lang.replace('_','-')===c&&v.localService)||vs.find(v=>v.lang.replace('_','-')===c)||vs.find(v=>v.lang.startsWith(base))||null;
+ }catch(e){voice=null}
+ const vi=$('#vInfo');if(vi)vi.textContent=!('speechSynthesis' in window)?'This browser has no speech. Text still shows in the bubble.':voice?('Voice: '+voice.name+' ('+voice.lang+')'):'No voice found for this language yet. The phone may still use a default one.';
+}
+try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
+pickVoice();
+function talk(on){document.querySelectorAll('.tutor,#who .top').forEach(t=>t.classList.toggle('talking',on))}
+function bubble(txt){const b=document.querySelector('.scr.on .bub');if(b)b.textContent=txt}
+function say(txt,show=true){
+ if(show)bubble(txt);
+ return new Promise(res=>{
+  let done=false;const fin=()=>{if(!done){done=true;talk(false);res()}};
+  if(!S.voice||!('speechSynthesis' in window)){setTimeout(fin,500+txt.length*40);return}
+  try{const u=new SpeechSynthesisUtterance(txt);u.lang=T().code;if(voice)u.voice=voice;u.rate=.88;u.pitch=1.15;
+   u.onend=fin;u.onerror=fin;talk(true);speechSynthesis.speak(u);setTimeout(fin,1500+txt.length*110)}catch(e){fin()}
+ });
+}
+function blurt(txt){try{if(S.voice&&'speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang=T().code;if(voice)u.voice=voice;u.rate=1;u.pitch=1.15;speechSynthesis.speak(u)}}catch(e){}}
+function hush(){epoch++;try{speechSynthesis.cancel()}catch(e){}talk(false)}
+
+/* ---------- screens ---------- */
+function show(id){hush();document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id))}
+function renderWho(){
+ $('#whoQ').textContent=T().who;
+ $('#players').innerHTML=S.players.map((p,i)=>`<button class="pcard" data-i="${i}"><span class="peb" style="background:${p.color}">${esc(p.name[0]||'?').toUpperCase()}</span><b>${esc(p.name)}</b><small><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-2px"><use href="#gstar"/></svg> ${p.stars}</small></button>`).join('')+`<button class="pcard new" id="newP"><span>+</span>${T().addP}</button>`;
+ show('who');
+}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function skill(p,k){if(!p.skills[k])p.skills[k]={lv:(START[p.age]||{})[k]||0,st:0,wr:0,ok:0,n:0};return p.skills[k]}
+function renderHome(){
+ const t=T();
+ $('#acts').innerHTML=BY_AGE[P.age].map((k,i)=>{const s=skill(P,k),o=OBJ[i%OBJ.length];
+  const pic=k==='pop'?`<svg class="pic" viewBox="0 0 100 86"><circle cx="34" cy="50" r="24" fill="#6fd0dc"/><circle cx="70" cy="34" r="18" fill="#9fe2ea"/><circle cx="72" cy="68" r="12" fill="#6fd0dc"/><circle cx="26" cy="42" r="6" fill="#fff"/></svg>`
+   :k==='more'?`<svg class="pic" viewBox="0 0 100 86"><use href="#shell" x="0" y="18" width="34" height="34" style="color:${o[1]}"/><use href="#shell" x="54" y="4" width="30" height="30" style="color:${o[1]}"/><use href="#shell" x="66" y="40" width="30" height="30" style="color:${o[1]}"/><use href="#shell" x="50" y="56" width="26" height="26" style="color:${o[1]}"/></svg>`
+   :k==='quick'?`<svg class="pic" viewBox="0 0 100 86"><rect x="18" y="6" width="64" height="64" rx="14" fill="var(--sea)"/><g fill="#fff"><circle cx="34" cy="22" r="7"/><circle cx="50" cy="38" r="7"/><circle cx="66" cy="54" r="7"/></g></svg>`
+   :`<svg class="pic" viewBox="0 0 100 86"><use href="#${o[0]}" x="4" y="14" width="48" height="48" style="color:${o[1]}"/><use href="#${o[0]}" x="48" y="14" width="48" height="48" style="color:${k==='sub'?'#bbb':k==='add'?'#2a9d8f':o[1]}"/>${k==='add'?'<text x="50" y="84" text-anchor="middle" font-size="26" font-weight="800" fill="var(--coral)">+</text>':k==='sub'?'<text x="50" y="84" text-anchor="middle" font-size="26" font-weight="800" fill="var(--coral)">−</text>':''}</svg>`;
+  return `<button class="act" data-k="${k}">${pic}<b>${t.acts[k]}</b><span class="pips">${[0,1,2,3].map(j=>`<i class="${j<=s.lv?'on':''}"></i>`).join('')}</span></button>`}).join('');
+ $('#shelf').innerHTML=(P.stickers||[]).slice(-24).map(s=>`<svg viewBox="0 0 100 100" style="color:${s[1]}"><use href="#${s[0]}"/></svg>`).join('');
+ show('home');save();
+ bubble(fill(t.hi,{n:P.name}));
+}
+
+/* ---------- layout helpers ---------- */
+function grid(n,W,H,spread){
+ const cells=spread?Math.ceil(n*1.6):n;
+ let cols=Math.max(1,Math.round(Math.sqrt(cells*W/H)));let rows=Math.ceil(cells/cols);
+ while(cols>1&&Math.ceil(cells/(cols-1))*1<=rows){cols--;rows=Math.ceil(cells/cols)}
+ const cw=W/cols,ch=H/rows,sz=Math.min(cw,ch,130)*.78;
+ let idx=[...Array(cols*rows).keys()];
+ if(spread){idx.sort(()=>Math.random()-.5);idx=idx.slice(0,n).sort((a,b)=>a-b)}else idx=idx.slice(0,n);
+ const lastRow=Math.floor((n-1)/cols),inLast=n-lastRow*cols;
+ return idx.map(i=>{const r=Math.floor(i/cols),c=i%cols;const off=(!spread&&r===lastRow)?(cols-inLast)*cw/2:0;
+  const j=spread?(Math.random()-.5)*.25:0;
+  return {x:off+c*cw+(cw-sz)/2+j*cw,y:r*ch+(ch-sz)/2+j*ch,s:sz}});
+}
+function items(box,pos,o,color,cls=''){
+ return pos.map(p=>{const b=document.createElement('button');b.className='it '+cls;b.style.cssText=`left:${p.x}px;top:${p.y}px;width:${p.s}px;height:${p.s}px;color:${color||o[1]}`;
+  b.innerHTML=`<svg viewBox="0 0 100 100"><use href="#${o[0]}"/></svg><b class="tag"></b>`;box.appendChild(b);return b});
+}
+function options(n,max){
+ const set=new Set([n]);let g=0;
+ while(set.size<3&&g++<50){const c=n+pick([-2,-1,1,2,1,-1]);if(c>=1&&c<=Math.max(max,n)+1)set.add(c)}
+ while(set.size<3)set.add(set.size+n+1);
+ return [...set].sort((a,b)=>a-b);
+}
+function dots(n){return `<span class="dots" style="grid-template-columns:repeat(${Math.min(n,5)},10px)">${'<i></i>'.repeat(n)}</span>`}
+
+/* ---------- play loop ---------- */
+let G=null;
+function startGame(k){G={k,round:0,score:0};show('play');next()}
+async function next(){
+ if(G.round>=ROUNDS){return reward()}
+ G.round++;G.first=true;G.busy=false;
+ $('#round').innerHTML=`<svg viewBox="0 0 100 100"><use href="#gstar"/></svg>${G.round}/${ROUNDS}`;
+ const st=$('#stage');st.innerHTML='';$('#ans').innerHTML='';$('#ans').classList.add('hide');
+ const s=skill(P,G.k),max=SK[G.k][s.lv],t=T(),ep=epoch,o=pick(OBJ);
+ const W=st.clientWidth,H=st.clientHeight;
+ await wait(150);
+ if(G.k==='pop'){
+  const n=rnd(Math.max(2,max-2),max);G.n=n;let c=0;
+  const pos=grid(n,W,H,true);
+  pos.forEach((p,i)=>{const b=document.createElement('button');b.className='bubb';const s2=p.s*(.8+Math.random()*.35);b.style.cssText=`left:${p.x}px;top:${p.y}px;width:${s2}px;height:${s2}px`;
+   b.onclick=async()=>{if(b.classList.contains('pop'))return;b.classList.add('pop');c++;blurt(String(c));bubble(String(c));
+    if(c===n){await wait(700);if(ep!==epoch)return;mark(true);await say(fill(t.popDone,{n}));if(ep!==epoch)return;await wait(300);next()}};st.appendChild(b)});
+  say(t.popQ);return;
+ }
+ if(G.k==='count'){
+  const n=rnd(1,max);G.n=n;const els=items(st,grid(n,W,H,s.lv>=2),o);let c=0;
+  els.forEach(e=>e.onclick=()=>{if(e.classList.contains('done')||G.busy)return;c++;e.classList.add('done');e.querySelector('.tag').textContent=c;blurt(String(c))});
+  G.els=els;await say(t.countQ);if(ep!==epoch)return;ask(n,max);return;
+ }
+ if(G.k==='quick'){
+  const n=rnd(1,max);G.n=n;const sz=Math.min(W,H)*.8,card=document.createElement('div');card.className='card';card.style.cssText=`width:${sz}px;height:${sz}px`;
+  const D={1:[[50,50]],2:[[28,28],[72,72]],3:[[25,25],[50,50],[75,75]],4:[[28,28],[72,28],[28,72],[72,72]],5:[[25,25],[75,25],[50,50],[25,75],[75,75]],6:[[30,22],[70,22],[30,50],[70,50],[30,78],[70,78]]};
+  const pts=n<=6?D[n]:[...Array(n).keys()].map(i=>[14+(i%5)*18,i<5?36:64]);
+  card.innerHTML=pts.map(p=>`<i class="d" style="left:${p[0]}%;top:${p[1]}%"></i>`).join('')+`<div class="cover" style="opacity:0">?</div>`;
+  st.appendChild(card);G.cover=card.querySelector('.cover');
+  await say(t.quickQ);if(ep!==epoch)return;await wait([2200,1600,1300,1300][s.lv]);if(ep!==epoch)return;G.cover.style.opacity=1;ask(n,max);return;
+ }
+ if(G.k==='more'){
+  const d=[3,2,1,1][s.lv];let a=rnd(1,max-d),b=rnd(a+d,max);if(Math.random()<.5)[a,b]=[b,a];G.a=a;G.b=b;
+  const half=W/2-6;const trays=[0,1].map(i=>{const tr=document.createElement('div');tr.className='tray';tr.setAttribute('role','button');tr.style.cssText=`left:${i?W/2+6:0}px;width:${half}px`;st.appendChild(tr);return tr});
+  G.L=items(trays[0],grid(a,half,H,false),o);G.R=items(trays[1],grid(b,half,H,false),o);G.trays=trays;
+  trays.forEach((tr,i)=>tr.onclick=()=>chooseMore(i));
+  say(t.moreQ);return;
+ }
+ if(G.k==='add'){
+  const sum=rnd(Math.min(3,max),max),a=rnd(Math.max(1,Math.min(2,sum-1)),sum-1),b=sum-a;G.n=sum;
+  const pos=grid(sum,W,H,false);G.els=items(st,pos.slice(0,a),o).concat(items(st,pos.slice(a),o,'#2a9d8f','new'));
+  await say(fill(t.addA,{a}));if(ep!==epoch)return;
+  G.els.slice(a).forEach((e,i)=>setTimeout(()=>e.classList.remove('new'),i*180));
+  await say(fill(t.addB,{b}));if(ep!==epoch)return;await say(t.addQ);if(ep!==epoch)return;ask(sum,max);return;
+ }
+ if(G.k==='sub'){
+  const a=rnd(Math.min(3,max),max),b=rnd(1,a-1);G.n=a-b;
+  const els=items(st,grid(a,W,H,false),o);G.els=els.slice(0,a-b);
+  await say(fill(t.subA,{a}));if(ep!==epoch)return;
+  els.slice(a-b).forEach((e,i)=>setTimeout(()=>e.classList.add('gone'),i*180));
+  await say(fill(t.subB,{b}));if(ep!==epoch)return;await say(t.subQ);if(ep!==epoch)return;ask(a-b,max);return;
+ }
+}
+function ask(n,max){
+ const s=skill(P,G.k),showDots=s.lv<=1&&G.k!=='quick';
+ const box=$('#ans');box.innerHTML=options(n,max).map(v=>`<button class="opt" data-v="${v}"><span class="n">${v}</span>${showDots?dots(v):''}</button>`).join('');
+ box.classList.remove('hide');
+ box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>choose(+b.dataset.v,b));
+}
+async function choose(v,btn){
+ if(G.busy)return;G.busy=true;const t=T(),ep=epoch;
+ if(v===G.n){btn.classList.add('yes');mark(G.first);if(G.cover)G.cover.style.opacity=0;await say(pick(t.praise));if(ep!==epoch)return;await wait(250);G.cover=null;return next()}
+ btn.classList.add('no');const wasFirst=G.first;G.first=false;if(wasFirst)mark(false);
+ if(G.cover){G.cover.style.opacity=0;await wait(300)}
+ if(G.k==='quick'){await say(t.together);if(ep!==epoch)return;const ds=[...document.querySelectorAll('.card .d')];for(let i=0;i<ds.length;i++){ds[i].style.background='var(--coral)';await say(String(i+1),false);if(ep!==epoch)return}}
+ else await countAll(G.els,t);
+ if(ep!==epoch)return;
+ await say(G.n===1?t.isOne:fill(t.isN,{n:G.n}));if(ep!==epoch)return;
+ $('#ans').querySelector(`[data-v="${G.n}"]`).classList.add('hint');
+ bubble(t.again);G.busy=false;
+}
+async function countAll(els,t){
+ const ep=epoch;await say(t.together);
+ els.forEach(e=>{e.classList.remove('done');e.querySelector('.tag').textContent=''});
+ for(let i=0;i<els.length;i++){if(ep!==epoch)return;els[i].classList.add('lit','done');els[i].querySelector('.tag').textContent=i+1;bubble(String(i+1));await say(String(i+1),false);els[i].classList.remove('lit')}
+}
+async function chooseMore(i){
+ if(G.busy)return;G.busy=true;const t=T(),ep=epoch,right=G.a>G.b?0:1;
+ if(i===right){G.trays[i].classList.add('pick');mark(G.first);await say(pick(t.praise));if(ep!==epoch)return;await wait(250);return next()}
+ G.trays[i].classList.add('bad');if(G.first)mark(false);G.first=false;
+ await countAll(G.L,t);if(ep!==epoch)return;await wait(300);
+ G.R.forEach(e=>{e.classList.remove('done')});
+ for(let k=0;k<G.R.length;k++){if(ep!==epoch)return;G.R[k].classList.add('lit','done');G.R[k].querySelector('.tag').textContent=k+1;bubble(String(k+1));await say(String(k+1),false);G.R[k].classList.remove('lit')}
+ if(ep!==epoch)return;const big=Math.max(G.a,G.b),sm=Math.min(G.a,G.b);
+ G.trays[i].classList.remove('bad');G.trays[right].classList.add('pick');
+ await say(fill(t.moreThan,{a:big,b:sm}));if(ep!==epoch)return;
+ G.trays[right].classList.remove('pick');bubble(t.again);G.busy=false;
+}
+function mark(ok){
+ const s=skill(P,G.k);s.n++;
+ if(ok){s.ok++;s.st++;s.wr=0;G.score++;if(s.st>=3&&s.lv<3){s.lv++;s.st=0;G.up=true}}
+ else{s.wr++;s.st=0;if(s.wr>=2&&s.lv>0){s.lv--;s.wr=0}}
+ save();
+}
+async function reward(){
+ const t=T();P.stars++;P.stickers=P.stickers||[];P.stickers.push(pick(OBJ));save();
+ $('#rTxt').textContent=t.star;$('#rCount').innerHTML=`<svg viewBox="0 0 100 100"><use href="#gstar"/></svg> ${P.stars}`;$('#rHome').textContent=t.home;
+ show('reward');await say(t.star,false);if(G.up){G.up=false;await say(t.up,false)}
+}
+
+/* ---------- grown-ups ---------- */
+function renderGrown(){
+ $('#lang').value=S.lang;$('#voiceOn').checked=S.voice;pickVoice();
+ $('#gPlayers').innerHTML=S.players.length?S.players.map((p,i)=>`<div class="pl"><div class="row" style="justify-content:space-between;margin:0"><b style="font-size:20px">${esc(p.name)} <span class="note">age ${p.age===2?'2–3':p.age===5?'5–7':'4'} · ${p.stars} stars</span></b><button class="btn ghost" data-del="${i}">Delete</button></div>
+  <table><tr><th>Skill</th><th class="r">Level</th><th class="r">Right first try</th></tr>${BY_AGE[p.age].map(k=>{const s=p.skills[k];return `<tr><td>${L.en.acts[k]}</td><td class="r">${s?s.lv+1:1} / 4</td><td class="r">${s&&s.n?Math.round(s.ok/s.n*100)+'% of '+s.n:'not played'}</td></tr>`}).join('')}</table>
+  <div class="row"><span class="note">Age group:</span>${[2,4,5].map(a=>`<button class="btn ghost" data-age="${i}:${a}" style="${p.age===a?'outline:3px solid var(--coral)':''}">${a===2?'2–3':a===5?'5–7':'4'}</button>`).join('')}</div></div>`).join(''):'<p class="note">No players yet.</p>';
+ show('grown');
+}
+$('#gPlayers').onclick=e=>{
+ const d=e.target.closest('[data-del]'),a=e.target.closest('[data-age]');
+ if(d){if(d.dataset.sure){S.players.splice(+d.dataset.del,1);save();renderGrown()}else{d.dataset.sure=1;d.textContent='Tap again to delete';d.style.background='var(--coral)';d.style.color='#fff'}}
+ if(a){const [i,g]=a.dataset.age.split(':');S.players[+i].age=+g;save();renderGrown()}
+};
+$('#lang').onchange=e=>{S.lang=e.target.value;save();pickVoice()};
+$('#voiceOn').onchange=e=>{S.voice=e.target.checked;save()};
+$('#vTest').onclick=()=>{bubble('');say(fill(T().isN,{n:3}),false)};
+$('#gBack').onclick=()=>P&&S.players.includes(P)?renderHome():renderWho();
+$('#gAdd').onclick=()=>openAdd();
+
+/* ---------- add player ---------- */
+let newAge=4;
+function openAdd(){$('#pName').value='';$('#dlg').classList.add('on');setTimeout(()=>$('#pName').focus(),50)}
+$('#pAge').onclick=e=>{const b=e.target.closest('button');if(!b)return;newAge=+b.dataset.a;$('#pAge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))};
+$('#pCancel').onclick=()=>$('#dlg').classList.remove('on');
+$('#pForm').onsubmit=e=>{e.preventDefault();const n=$('#pName').value.trim();if(!n)return;
+ S.players.push({id:Date.now(),name:n,age:newAge,color:PCOL[S.players.length%PCOL.length],stars:0,stickers:[],skills:{}});save();
+ $('#dlg').classList.remove('on');$('#grown').classList.contains('on')?renderGrown():renderWho()};
+
+/* ---------- wiring ---------- */
+$('#players').onclick=e=>{const c=e.target.closest('.pcard');if(!c)return;if(c.id==='newP')return openAdd();P=S.players[+c.dataset.i];renderHome();say(fill(T().hi,{n:P.name}),false)};
+$('#acts').onclick=e=>{const a=e.target.closest('.act');if(a)startGame(a.dataset.k)};
+$('#hBack').onclick=renderWho;
+$('#pBack').onclick=renderHome;
+$('#rMore').onclick=()=>startGame(G.k);
+$('#rHome').onclick=renderHome;
+document.querySelectorAll('[data-say]').forEach(c=>c.onclick=()=>{const b=document.querySelector('.scr.on .bub');if(b&&b.textContent)say(b.textContent,false)});
+const gear=$('#gear');let ht=null;
+const hs=e=>{e.preventDefault();gear.classList.add('going');ht=setTimeout(()=>{gear.classList.remove('going');renderGrown()},1500)};
+const he=()=>{clearTimeout(ht);gear.classList.remove('going')};
+gear.addEventListener('pointerdown',hs);['pointerup','pointerleave','pointercancel'].forEach(v=>gear.addEventListener(v,he));
+gear.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hush()});
+renderWho();
+try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+}
+</script>
+</body>
+</html>

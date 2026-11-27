@@ -9,6 +9,8 @@ const fill = (s, o) => s.replace(/\{(\w)\}/g, (_, k) => o[k]);
 const out = {};
 for (const [lang, t] of Object.entries(L)) {
   const set = new Set([t.hiS, t.who, t.popQ, t.countQ, t.quickQ, t.moreQ, t.addQ, t.subQ, t.together, t.again, t.star, t.up, t.isOne, ...t.praise]);
+  // letters: instructions, letter names (as spoken, e.g. 'bee'), animal words
+  for (const x of [t.trBig, t.trSmall, t.trName, t.nameDone, t.trWord, t.follow, ...t.ln.split('|'), ...t.an]) set.add(x);
   for (let n = 1; n <= 10; n++) {
     set.add(String(n));
     for (const k of ['addA', 'subA']) set.add(fill(t[k], { a: n }));

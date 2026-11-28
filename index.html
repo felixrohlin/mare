@@ -502,18 +502,19 @@ const FONT='ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Nunito","Varela
 const ALPHA={en:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',pt:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',nl:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',sv:'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ'};
 const ANIMOJI=['🐱','🐶','🐮','🐷','🐟','🦆','🐴','🦁','🐸','🐻','🐭','🦉'];
 const WKINDS=['abc','name','animals'];
-const THR={2:.8,4:.93,5:.96};         // share of the letter's parts that must be traced, per age group
+const THR={2:.78,4:.85,5:.9};         // share of each line the finger must pass along, per age group
 const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5];
 const gc=$('#wGuide'),ic=$('#wInk'),gx=gc.getContext('2d'),ix=ic.getContext('2d');
-let WS=null,pen=null;window.__mareWS=()=>WS;
+let WS=null,pen=null;window.__mareWS=()=>WS;window.__mareL=c=>letterStrokes(c);
 function wr(){P.wr=P.wr||{abc:{},an:{},names:0};return P.wr}
 function letterName(ch){const A=ALPHA[S.lang],ln=T().ln.split('|');let i=A.indexOf(ch.toUpperCase());if(i<0)i=A.indexOf(ch.normalize('NFD')[0].toUpperCase());return i>=0?ln[i]:null}
 function sayLetter(ch,shown){bubble(shown||ch);const n=letterName(ch);return n?say(n,false):wait(300)}
 function startWrite(k){
  const t=T(),w=wr(),A=ALPHA[S.lang];G={k,write:true,pages:0};
  if(k==='abc')WS={k,i:Math.min(w.abc[S.lang]||0,A.length-1)};
- else if(k==='name')WS={k,word:[...P.name].filter(c=>/\p{L}/u.test(c)),pos:0};
- else{const i=(w.an[S.lang]||0)%t.an.length;WS={k,i,word:[...t.an[i]],pos:0}}
+ else if(k==='name')WS={k,word:[...P.name].filter(canTrace),pos:0};
+ else{const i=(w.an[S.lang]||0)%t.an.length;WS={k,i,word:[...t.an[i]].filter(canTrace),pos:0}}
+ if(WS.word&&!WS.word.length)return;
  if(!WS.word&&k!=='abc')return;
  show('write');requestAnimationFrame(()=>openPage(true));
 }
@@ -522,22 +523,50 @@ function sizeCv(){
  for(const c of [gc,ic]){c.width=Math.round(r.width*dpr);c.height=Math.round(r.height*dpr);c.getContext('2d').setTransform(dpr,0,0,dpr,0,0)}
  WS.cw=Math.max(1,Math.round(r.width));WS.ch=Math.max(1,Math.round(r.height));
 }
-function fit(str,maxW,maxH){gx.font=`800 100px ${FONT}`;const m=gx.measureText(str);const w=m.actualBoundingBoxLeft+m.actualBoundingBoxRight,h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;return 100*Math.min(maxW/w,maxH/h)}
-function glyph(ch,cx,cy,S){
- const font=`800 ${S}px ${FONT}`;gx.font=font;const m=gx.measureText(ch);
- const l=m.actualBoundingBoxLeft,r=m.actualBoundingBoxRight,a=m.actualBoundingBoxAscent,d=m.actualBoundingBoxDescent;
- const x=cx-(r-l)/2,y=cy+(a-d)/2,bb={x0:x-l,x1:x+r,y0:y-a,y1:y+d},brush=Math.max(16,S*.12),Wd=WS.cw,Ht=WS.ch;
- const oc=document.createElement('canvas');oc.width=Wd;oc.height=Ht;const o=oc.getContext('2d');o.font=font;o.textBaseline='alphabetic';
- o.fillText(ch,x,y);const fill=o.getImageData(0,0,Wd,Ht).data;
- o.lineWidth=brush*1.6;o.lineJoin='round';o.strokeText(ch,x,y);const allow=o.getImageData(0,0,Wd,Ht).data;
- const step=Math.max(4,S/34),samples=[];
- for(let yy=bb.y0;yy<=bb.y1;yy+=step)for(let xx=bb.x0;xx<=bb.x1;xx+=step){const xi=xx|0,yi=yy|0;if(xi>=0&&yi>=0&&xi<Wd&&yi<Ht&&fill[(yi*Wd+xi)*4+3]>128)samples.push({x:xx,y:yy,c:0})}
- // cut the letter into small cells (about one finger-width each); every cell has to be passed through
- const cs=brush,cm=new Map();
- for(const p of samples){const k=((p.x/cs)|0)+','+((p.y/cs)|0);const c=cm.get(k)||{x:0,y:0,n:0};c.x+=p.x;c.y+=p.y;c.n++;cm.set(k,c)}
- const cells=[...cm.values()].filter(c=>c.n>=3).map(c=>({x:c.x/c.n,y:c.y/c.n,c:0}));
- let st=cells[0]||{x:cx,y:cy};for(const c of cells)if(c.y<st.y-cs/2||(Math.abs(c.y-st.y)<=cs/2&&c.x<st.x))st=c;
- return {ch,x,y,font,bb,brush,cells,allow,Wd,start:st,cov:0,inn:0,out:0,done:false,hue:0};
+/* Letters as lines a finger follows (school print: single-storey a and g).
+   Units: capital height 0..100 with the baseline at 100, x-height from 46, descenders to ~140.
+   First value = width; then one SVG path per stroke. */
+const LP={
+A:[80,'M40 0L5 100','M40 0L75 100','M18 66L62 66'],B:[66,'M8 0L8 100','M8 0L36 0A22 24 0 0 1 36 48L8 48','M8 48L40 48A25 26 0 0 1 40 100L8 100'],
+C:[78,'M68 16A40 50 0 1 0 68 84'],D:[72,'M8 0L8 100','M8 0L30 0A40 50 0 0 1 30 100L8 100'],E:[60,'M8 0L8 100','M8 0L54 0','M8 50L46 50','M8 100L54 100'],
+F:[58,'M8 0L8 100','M8 0L54 0','M8 50L46 50'],G:[80,'M70 18A40 50 0 1 0 74 62L46 62'],H:[70,'M8 0L8 100','M62 0L62 100','M8 50L62 50'],
+I:[20,'M10 0L10 100'],J:[50,'M42 0L42 72A20 24 0 0 1 2 72'],K:[66,'M8 0L8 100','M60 0L8 60','M26 44L62 100'],L:[56,'M8 0L8 100L54 100'],
+M:[86,'M8 100L8 0L43 70L78 0L78 100'],N:[70,'M8 100L8 0L62 100L62 0'],O:[84,'M42 0A37 50 0 0 0 42 100A37 50 0 0 0 42 0'],
+P:[64,'M8 0L8 100','M8 0L35 0A25 26 0 0 1 35 52L8 52'],Q:[86,'M42 0A37 50 0 0 0 42 100A37 50 0 0 0 42 0','M52 72L82 104'],
+R:[66,'M8 0L8 100','M8 0L35 0A25 26 0 0 1 35 52L8 52','M32 52L62 100'],S:[62,'M56 14C48 0 10 -2 9 24C8 48 56 46 57 74C58 102 14 104 5 86'],
+T:[70,'M5 0L65 0','M35 0L35 100'],U:[70,'M8 0L8 66A27 34 0 0 0 62 66L62 0'],V:[76,'M5 0L38 100L71 0'],W:[100,'M5 0L27 100L50 30L73 100L95 0'],
+X:[70,'M8 0L62 100','M62 0L8 100'],Y:[70,'M5 0L35 50L35 100','M65 0L35 50'],Z:[66,'M6 0L60 0L6 100L62 100'],
+a:[56,'M47 66A20 27 0 1 0 47 80','M47 46L47 100'],b:[56,'M8 0L8 100','M8 66A20 27 0 1 1 8 80'],c:[52,'M46 54A21 27 0 1 0 46 92'],
+d:[56,'M47 66A20 27 0 1 0 47 80','M47 0L47 100'],e:[56,'M8 73L49 73A21 27 0 1 0 45 93'],f:[42,'M40 8C32 -2 16 0 16 20L16 100','M4 46L36 46'],
+g:[56,'M47 66A20 27 0 1 0 47 80','M47 46L47 116C47 140 12 142 6 126'],h:[56,'M8 0L8 100','M8 68C12 44 47 40 47 66L47 100'],
+i:[20,'M10 46L10 100','M10 26L10.4 26'],j:[34,'M26 46L26 116C26 138 6 138 2 126','M26 26L26.4 26'],k:[52,'M8 0L8 100','M44 46L8 80','M22 68L46 100'],
+l:[20,'M10 0L10 100'],m:[80,'M8 46L8 100','M8 66C11 44 40 42 40 64L40 100','M40 64C43 44 72 42 72 64L72 100'],n:[56,'M8 46L8 100','M8 68C12 44 47 40 47 66L47 100'],
+o:[54,'M27 46A20 27 0 0 0 27 100A20 27 0 0 0 27 46'],p:[56,'M8 46L8 138','M8 66A20 27 0 1 1 8 80'],q:[56,'M47 66A20 27 0 1 0 47 80','M47 46L47 138'],
+r:[44,'M8 46L8 100','M8 70C12 48 28 42 40 50'],s:[46,'M42 54C36 42 8 42 8 58C8 73 42 70 42 86C42 102 10 104 4 90'],t:[42,'M20 10L20 90C20 102 32 102 38 96','M4 46L38 46'],
+u:[56,'M8 46L8 78C8 104 47 104 47 78','M47 46L47 100'],v:[54,'M4 46L27 100L50 46'],w:[78,'M4 46L21 100L39 58L57 100L74 46'],x:[50,'M6 46L44 100','M44 46L6 100'],
+y:[54,'M4 46L27 100','M50 46L18 138'],z:[50,'M6 46L44 46L6 100L46 100']};
+// accents are added on top of the base letter, so Å, Ä, Ö, ã, é, ç... all work
+const MARK={'́':(c,y)=>[`M${c-5} ${y+6}L${c+6} ${y-6}`],'̀':(c,y)=>[`M${c-6} ${y-6}L${c+5} ${y+6}`],'̂':(c,y)=>[`M${c-10} ${y+6}L${c} ${y-6}L${c+10} ${y+6}`],
+ '̃':(c,y)=>[`M${c-13} ${y+3}C${c-7} ${y-8} ${c+7} ${y+10} ${c+13} ${y-3}`],'̈':(c,y)=>[`M${c-10} ${y}L${c-9.6} ${y}`,`M${c+10} ${y}L${c+10.4} ${y}`],
+ '̊':(c,y)=>[`M${c} ${y-8}A8 8 0 0 0 ${c} ${y+8}A8 8 0 0 0 ${c} ${y-8}`],'̧':c=>[`M${c} 100C${c+10} 106 ${c+8} 120 ${c-6} 118`]};
+const SVGP=document.createElementNS('http://www.w3.org/2000/svg','path');document.querySelector('svg').appendChild(SVGP);
+const sampCache=new Map();
+function sampleD(d){if(sampCache.has(d))return sampCache.get(d);SVGP.setAttribute('d',d);const L=SVGP.getTotalLength(),n=Math.max(1,Math.ceil(L/3)),pts=[];
+ for(let i=0;i<=n;i++){const q=SVGP.getPointAtLength(L*i/n);pts.push({x:q.x,y:q.y})}const r={pts,L};sampCache.set(d,r);return r}
+function letterStrokes(ch){
+ const nfd=ch.normalize('NFD'),base=nfd[0],marks=[...nfd.slice(1)].filter(m=>MARK[m]);const def=LP[base];if(!def)return null;
+ let ds=def.slice(1);if(marks.length&&(base==='i'||base==='j'))ds=ds.slice(0,1);
+ if(marks.length){const xs=ds.flatMap(d=>sampleD(d).pts.map(q=>q.x)),c=(Math.min(...xs)+Math.max(...xs))/2,up=base!==base.toLowerCase();
+  for(const m of marks)ds=ds.concat(MARK[m](Math.round(c),up?-22:26))}
+ return ds;
+}
+function extent(ch){const ds=letterStrokes(ch);let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const d of ds)for(const q of sampleD(d).pts){x0=Math.min(x0,q.x);x1=Math.max(x1,q.x);y0=Math.min(y0,q.y);y1=Math.max(y1,q.y)}return{x0,x1,y0,y1}}
+const canTrace=ch=>!!letterStrokes(ch);
+// build a traceable letter centred on (cx,cy) at u pixels per unit; vy = vertical unit range to centre on (keeps a word on one baseline)
+function glyphP(ch,cx,cy,u,vy){
+ const e=extent(ch),ry=vy||[e.y0,e.y1],ox=cx-u*(e.x0+e.x1)/2,oy=cy-u*(ry[0]+ry[1])/2;
+ const strokes=letterStrokes(ch).map(d=>{const sm=sampleD(d);return{d,p2:new Path2D(d),pts:sm.pts.map(q=>({x:ox+u*q.x,y:oy+u*q.y,v:0})),dot:sm.L<4,cnt:0,done:false,hue:0}});
+ return{ch,u,ox,oy,strokes,bb:{x0:ox+u*e.x0,x1:ox+u*e.x1,y0:oy+u*e.y0,y1:oy+u*e.y1},tol:Math.max(20,u*14),done:false,hue:0,inn:0,out:0};
 }
 async function openPage(intro){
  const t=T(),ep=epoch,key=WS.k+':'+(WS.k==='abc'?WS.i:WS.pos);
@@ -545,12 +574,14 @@ async function openPage(intro){
  renderStrip();sizeCv();const Wd=WS.cw,Ht=WS.ch;
  if(WS.k==='abc'){
   const U=ALPHA[S.lang][WS.i],lo=U.toLowerCase(),vert=Ht>Wd*1.05;
-  const bx=vert?[[Wd/2,Ht*.26,Wd*.78,Ht*.44],[Wd/2,Ht*.75,Wd*.78,Ht*.44]]:[[Wd*.27,Ht/2,Wd*.42,Ht*.84],[Wd*.74,Ht/2,Wd*.42,Ht*.84]];
-  const S0=fit(U,bx[0][2],bx[0][3]);
-  WS.glyphs=[glyph(U,bx[0][0],bx[0][1],S0),glyph(lo,bx[1][0],bx[1][1],S0)];
+  const bx=vert?[[Wd/2,Ht*.26,Wd*.78,Ht*.42],[Wd/2,Ht*.75,Wd*.78,Ht*.42]]:[[Wd*.27,Ht/2,Wd*.42,Ht*.8],[Wd*.74,Ht/2,Wd*.42,Ht*.8]];
+  const fu=(c,w,h)=>{const e=extent(c);return Math.min(w/(e.x1-e.x0),h/(e.y1-e.y0))};
+  const u=Math.min(fu(U,bx[0][2],bx[0][3]),fu(lo,bx[1][2],bx[1][3]),fu('H',bx[1][2],bx[1][3]));
+  WS.glyphs=[glyphP(U,bx[0][0],bx[0][1],u),glyphP(lo,bx[1][0],bx[1][1],u)];
  }else{
-  const S0=Math.min(fit('W',Wd*.8,1e9),fit('Åg',1e9,Ht*.86));
-  WS.glyphs=[glyph(WS.word[WS.pos],Wd/2,Ht/2,S0)];
+  let mw=0,y0=1e9,y1=-1e9;for(const c of WS.word){const e=extent(c);mw=Math.max(mw,e.x1-e.x0);y0=Math.min(y0,e.y0);y1=Math.max(y1,e.y1)}
+  const u=Math.min(Wd*.7/mw,Ht*.8/(y1-y0));
+  WS.glyphs=[glyphP(WS.word[WS.pos],Wd/2,Ht/2,u,[y0,y1])];
  }
  if(keep)WS.glyphs.forEach((g,i)=>{if(keep[i]){g.done=keep[i][0];g.hue=keep[i][1]}});
  WS.act=WS.glyphs.findIndex(g=>!g.done);WS.lock=false;pen=null;
@@ -574,29 +605,40 @@ function renderStrip(){
  }
 }
 function drawGuide(){
- gx.clearRect(0,0,WS.cw,WS.ch);gx.textBaseline='alphabetic';gx.lineJoin='round';
- WS.glyphs.forEach((g,i)=>{
-  gx.font=g.font;
-  if(g.done){const gr=gx.createLinearGradient(g.bb.x0,g.bb.y0,g.bb.x1,g.bb.y1);for(let k=0;k<5;k++)gr.addColorStop(k/4,`hsl(${(g.hue+k*70)%360},90%,58%)`);gx.fillStyle=gr;gx.fillText(g.ch,g.x,g.y);gx.lineWidth=4;gx.strokeStyle='#fff';gx.strokeText(g.ch,g.x,g.y)}
-  else if(i===WS.act){gx.save();gx.shadowColor='rgba(0,0,0,.18)';gx.shadowBlur=14;gx.shadowOffsetY=5;gx.fillStyle='#fffdf6';gx.fillText(g.ch,g.x,g.y);gx.restore();
-   gx.setLineDash([1,11]);gx.lineCap='round';gx.lineWidth=5;gx.strokeStyle='#0f7c8c';gx.strokeText(g.ch,g.x,g.y);gx.setLineDash([])}
-  else{gx.fillStyle='rgba(255,255,255,.45)';gx.fillText(g.ch,g.x,g.y)}
+ gx.clearRect(0,0,WS.cw,WS.ch);
+ WS.glyphs.forEach((g,gi)=>{
+  gx.save();gx.translate(g.ox,g.oy);gx.scale(g.u,g.u);gx.lineCap='round';gx.lineJoin='round';
+  const act=gi===WS.act;
+  g.strokes.forEach((s,si)=>{
+   if(g.done||s.done){gx.strokeStyle='#fff';gx.lineWidth=15;gx.stroke(s.p2);gx.strokeStyle=`hsl(${((g.done?g.hue:s.hue)+si*55)%360},90%,55%)`;gx.lineWidth=10;gx.stroke(s.p2);return}
+   if(!act){gx.strokeStyle='rgba(255,255,255,.5)';gx.lineWidth=11;gx.stroke(s.p2);return}
+   gx.save();gx.shadowColor='rgba(0,0,0,.16)';gx.shadowBlur=10;gx.shadowOffsetY=3;gx.strokeStyle='#fffdf6';gx.lineWidth=12;gx.stroke(s.p2);gx.restore();
+   gx.setLineDash(s.dot?[]:[.01,7]);gx.strokeStyle='#0f7c8c';gx.lineWidth=s.dot?6:3.5;gx.stroke(s.p2);gx.setLineDash([]);
+  });
+  gx.restore();
  });
 }
 function clearInk(){ix.clearRect(0,0,WS.cw,WS.ch)}
-function resetG(g){g.cov=0;g.inn=0;g.out=0;g.cells.forEach(p=>p.c=0)}
-function placeDot(at){const d=$('#sdot'),g=WS.glyphs[WS.act];if(!g){d.style.display='none';return}const p=at||g.start;d.style.left=p.x+'px';d.style.top=p.y+'px';d.style.display='block'}
-// after the finger lifts, show where the untraced part is: the nearest cell not yet passed
-function nextGap(g,from){let best=null,bd=1e9;for(const c of g.cells)if(!c.c){const d=Math.hypot(c.x-from.x,c.y-from.y);if(d<bd){bd=d;best=c}}return best}
+function resetG(g){g.inn=0;g.out=0;g.strokes.forEach(s=>{s.done=false;s.cnt=0;s.pts.forEach(q=>q.v=0)})}
+// green dot = where the next line starts
+function placeDot(){const d=$('#sdot'),g=WS.glyphs[WS.act],s=g&&g.strokes.find(x=>!x.done);if(!s){d.style.display='none';return}d.style.left=s.pts[0].x+'px';d.style.top=s.pts[0].y+'px';d.style.display='block'}
 function ptr(e){const r=ic.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,L2=dx*dx+dy*dy;let t=L2?((p.x-a.x)*dx+(p.y-a.y)*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy))}
 function ink(g,a,b){
- ix.strokeStyle=`hsl(${pen.hue},95%,55%)`;ix.lineWidth=g.brush*.75;ix.lineCap='round';ix.lineJoin='round';
+ ix.strokeStyle=`hsl(${pen.hue},95%,55%)`;ix.lineWidth=Math.max(7,g.u*8);ix.lineCap='round';ix.lineJoin='round';
  ix.beginPath();ix.moveTo(a.x,a.y);ix.lineTo(b.x,b.y);ix.stroke();
- const d=Math.hypot(b.x-a.x,b.y-a.y),r=g.brush*.7;
- for(const p of g.cells)if(!p.c&&segDist(p,a,b)<r){p.c=1;g.cov++}
- WS.last=b;
- for(let s=0;s<=d;s+=6){const t=d?s/d:0,x=(a.x+(b.x-a.x)*t)|0,y=(a.y+(b.y-a.y)*t)|0;if(x>=0&&y>=0&&x<g.Wd&&y<WS.ch&&g.allow[(y*g.Wd+x)*4+3]>100)g.inn++;else g.out++}
+ const d=Math.hypot(b.x-a.x,b.y-a.y),thr=THR[P.age]||.85;let changed=false;
+ // finger movement only counts for the line it is nearest to, so tracing A's legs doesn't tick off the crossbar
+ const m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};let near=null,nd=1e9;
+ for(const s of g.strokes)for(const q of s.pts){const dd=Math.hypot(q.x-m.x,q.y-m.y);if(dd<nd){nd=dd;near=s}}
+ for(const s of g.strokes){if(s.done||s!==near)continue;
+  for(const q of s.pts)if(!q.v&&segDist(q,a,b)<g.tol*(s.dot?1.2:1)){q.v=1;s.cnt++}
+  if(s.dot?s.cnt>0:s.cnt/s.pts.length>=thr){s.done=true;s.hue=pen.hue;changed=true}}
+ if(changed){drawGuide();placeDot();$('#sdot').style.display='none';if(g.strokes.some(x=>!x.done))tone(988,.12,'triangle',.12)}
+ // how much is drawn far away from every line (scribbling)
+ for(let t=0;t<=d;t+=6){const k=d?t/d:0,x=a.x+(b.x-a.x)*k,y=a.y+(b.y-a.y)*k;let near=false;
+  for(const s of g.strokes){for(const q of s.pts)if(Math.abs(q.x-x)<g.tol*2.5&&Math.abs(q.y-y)<g.tol*2.5){near=true;break}if(near)break}
+  near?g.inn++:g.out++}
  pen.hue=(pen.hue+d*.6)%360;WS.hue=pen.hue;pen.dist+=d;
  if(pen.dist>30){pen.dist=0;note()}
 }
@@ -614,14 +656,13 @@ ic.addEventListener('pointermove',e=>{
  for(const ev of (evs.length?evs:[e])){const p=ptr(ev);ink(g,{x:pen.x,y:pen.y},p);pen.x=p.x;pen.y=p.y}
 });
 // wait a moment after the finger lifts: a letter with several strokes (A, E, k) needs the finger lifted in between
-['pointerup','pointercancel'].forEach(v=>ic.addEventListener(v,e=>{if(!pen||e.pointerId!==pen.id)return;pen=null;clearTimeout(WS.pend);WS.pend=setTimeout(()=>check(true),450)}));
-function check(lift){
+['pointerup','pointercancel'].forEach(v=>ic.addEventListener(v,e=>{if(!pen||e.pointerId!==pen.id)return;pen=null;clearTimeout(WS.pend);WS.pend=setTimeout(check,300)}));
+function check(){
  const g=WS.glyphs[WS.act];if(!g||g.done||WS.lock||!$('#write').classList.contains('on'))return;
  if(pen)return;
- const ratio=g.cov/Math.max(1,g.cells.length),thr=THR[P.age]||.93,messy=g.out>50&&g.out/(g.inn+g.out)>.5;
- if(ratio>=thr&&!messy){glyphDone(g);return}
- if(messy){clearInk();resetG(g);placeDot();sfx('no');say(T().follow);return}
- const gap=nextGap(g,WS.last||g.start);if(gap)placeDot(gap);
+ if(g.strokes.every(x=>x.done)){glyphDone(g);return}
+ if(g.out>60&&g.out/(g.inn+g.out)>.5){clearInk();resetG(g);drawGuide();placeDot();sfx('no');say(T().follow);return}
+ placeDot();
 }
 function burst(g){
  return new Promise(res=>{
@@ -656,7 +697,7 @@ async function pageDone(){
  if(ep!==epoch)return;await wait(400);if(ep!==epoch)return;reward();
 }
 $('#wTop').onclick=e=>{const b=e.target.closest('button.lt');if(!b||!WS||WS.k!=='abc')return;const i=+b.dataset.i;if(i>(wr().abc[S.lang]||0))return;hush();WS.i=i;openPage(true)};
-$('#wClear').onclick=()=>{const g=WS&&WS.glyphs[WS.act];if(!g)return;clearTimeout(WS.pend);clearInk();resetG(g);placeDot();sfx('tap')};
+$('#wClear').onclick=()=>{const g=WS&&WS.glyphs[WS.act];if(!g)return;clearTimeout(WS.pend);clearInk();resetG(g);drawGuide();placeDot();sfx('tap')};
 $('#wHear').onclick=()=>{if(!WS)return;hush();if(WS.k==='abc'){const U=ALPHA[S.lang][WS.i];sayLetter(U,U+' '+U.toLowerCase())}else if(WS.k==='animals'&&WS.pos===0){bubble(WS.word.join(''));say(T().an[WS.i],false)}else sayLetter(WS.word[WS.pos])};
 $('#wBack').onclick=()=>renderHome();
 let rsT=null;window.addEventListener('resize',()=>{if(!$('#write').classList.contains('on')||!WS)return;clearTimeout(rsT);rsT=setTimeout(()=>openPage(false),200)});

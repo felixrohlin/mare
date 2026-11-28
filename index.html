@@ -27,7 +27,7 @@
 html,body{height:100%}
 body{margin:0;background:var(--sand);color:var(--ink);font:17px/1.4 ui-rounded,"SF Pro Rounded","Nunito","Varela Round",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+button:focus-visible,[role=button]:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
 .scr{position:fixed;inset:0;display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .scr.on{display:flex}
 .sea{position:absolute;inset:0 0 auto 0;height:34%;background:linear-gradient(var(--sea),var(--sea2));z-index:-1}
@@ -39,7 +39,7 @@ h1{font-size:clamp(40px,12vw,64px);line-height:1;margin:0;color:#fff;letter-spac
 #who .top{padding:28px 22px 0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:30%}
 #who .crab{width:min(38vw,170px)}
 .players{flex:1;overflow:auto;padding:18px 18px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;align-content:start}
-.pcard{background:var(--card);border-radius:28px;padding:18px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 4px 0 var(--line);min-height:170px}
+.pcard{background:var(--card);border-radius:28px;padding:16px 10px 16px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 0 var(--line);min-height:170px;height:auto;cursor:pointer;text-align:center}
 .peb{width:84px;height:70px;border-radius:50% 46% 52% 44%/58% 52% 48% 42%;display:grid;place-items:center;color:#fff;font-size:38px;font-weight:800;box-shadow:inset -6px -8px 0 #0002,inset 6px 6px 0 #fff4}
 .pcard b{font-size:22px}.pcard small{opacity:.7}
 .pcard.new{border:3px dashed var(--line);background:none;box-shadow:none;justify-content:center;font-size:19px;font-weight:700}
@@ -56,7 +56,7 @@ h1{font-size:clamp(40px,12vw,64px);line-height:1;margin:0;color:#fff;letter-spac
 .chip svg{width:22px;height:22px}
 /* home */
 .acts{flex:1;overflow:auto;padding:26px 16px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-content:start}
-.act{background:var(--card);border-radius:28px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 5px 0 var(--line);min-height:150px}
+.act{cursor:pointer;text-align:center;background:var(--card);border-radius:28px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 5px 0 var(--line);min-height:150px}
 .act svg.pic{width:88px;height:76px}
 .act b{font-size:21px}
 .pips{display:flex;gap:5px}.pips i{width:10px;height:10px;border-radius:50%;background:var(--line)}.pips i.on{background:var(--coral)}
@@ -125,7 +125,7 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
 .langs{display:flex;flex-wrap:wrap;gap:8px;padding:16px 18px 0}
 .langs button{background:var(--card);border-radius:22px;padding:10px 16px;min-height:48px;font-weight:800;font-size:17px;box-shadow:0 3px 0 var(--line);border:3px solid transparent}
 .langs button.on{border-color:var(--coral)}
-.pcard .play{margin-top:4px;background:var(--coral);color:#fff;font-weight:800;font-size:19px;border-radius:22px;padding:8px 20px;box-shadow:0 4px 0 #c44a30}
+.pcard .play{margin-top:6px;white-space:nowrap;background:var(--coral);color:#fff;font-weight:800;font-size:19px;border-radius:22px;padding:8px 20px;box-shadow:0 4px 0 #c44a30}
 .whofoot{padding:0 18px 18px;display:flex;justify-content:flex-end}
 /* letters */
 .grp{grid-column:1/-1;justify-self:start;background:var(--card);border-radius:16px;padding:4px 14px;font-size:17px;font-weight:800;box-shadow:0 3px 0 var(--line);margin:2px 0 -4px}
@@ -150,6 +150,9 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
 .round svg{width:36px;height:36px}
 @media(max-height:520px){#write .bar{padding-top:4px}.wtop{padding:2px 12px;min-height:54px}.wtop.word .lt{height:46px;font-size:28px}.wtop .emo{font-size:40px}
  .wbtns{position:absolute;right:max(12px,env(safe-area-inset-right));bottom:12px;flex-direction:column;padding:0;gap:12px;z-index:2}.round{width:58px;height:58px}.wstage{margin:2px 84px 8px 10px}}
+/* cards keep their natural height; the list scrolls instead of squeezing them */
+.players,.acts{grid-auto-rows:max-content}
+.pcard>*,.act>*{flex-shrink:0}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(min-width:700px){.acts{grid-template-columns:repeat(3,minmax(0,1fr))}.ans{max-width:760px;margin:0 auto;width:100%}}
 </style>
@@ -227,7 +230,7 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
 
 <div class="dlg" id="dlg"><form id="pForm">
  <h3>New player</h3>
- <input id="pName" maxlength="14" placeholder="Name" autocomplete="off" required>
+ <input id="pName" maxlength="14" placeholder="Name" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" required>
  <div class="ages" id="pAge"><button type="button" data-a="2">2–3</button><button type="button" data-a="4" class="on">4</button><button type="button" data-a="5">5–7</button></div>
  <div class="row"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" id="pCancel">Cancel</button></div>
 </form></div>
@@ -243,10 +246,10 @@ td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}td.r,t
 {
 const $=s=>document.querySelector(s);
 const L={
-en:{code:'en-GB',grpN:'Numbers',grpL:'Letters',w:{abc:'ABC',name:'My name',animals:'Animals'},trBig:'Trace the big letter!',trSmall:'Now the small one!',trName:"Let's write your name!",nameDone:'You wrote your name!',trWord:"Let's write it!",follow:'Follow the dotted line.',ln:'ay|bee|see|dee|ee|ef|jee|aitch|eye|jay|kay|el|em|en|oh|pee|cue|ar|ess|tee|you|vee|double you|ex|why|zed',an:['cat','dog','cow','pig','fish','duck','horse','lion','frog','bear','mouse','owl'],play:'Play',hiS:'Hi! What shall we play?',who:"Who's playing?",addP:'Add player',hi:'Hi {n}! What shall we play?',acts:{pop:'Bubbles',count:'Count',quick:'Quick look',more:'More',add:'Add',sub:'Take away'},popQ:'Pop the bubbles and count!',popDone:'{n} bubbles!',countQ:'How many are there?',quickQ:'Look quickly! How many?',moreQ:'Which side has more?',addA:'Here are {a}.',addB:'And {b} more!',addQ:'How many now?',subA:'Here are {a}.',subB:'Bye-bye to {b}!',subQ:'How many are left?',together:"Let's count together.",isN:"It's {n}!",isOne:"It's 1!",moreThan:'{a} is more than {b}.',praise:['Yes!','You got it!','Great counting!',"That's right!"],again:'Now you try.',star:'You earned a star!',home:'Home',up:"Ooh, let's try harder ones!"},
-pt:{code:'pt-PT',grpN:'Números',grpL:'Letras',w:{abc:'ABC',name:'O meu nome',animals:'Animais'},trBig:'Desenha a letra grande!',trSmall:'Agora a pequenina!',trName:'Vamos escrever o teu nome!',nameDone:'Escreveste o teu nome!',trWord:'Vamos escrever!',follow:'Segue o tracejado.',ln:'á|bê|cê|dê|é|efe|guê|agá|i|jota|capa|ele|eme|ene|ó|pê|quê|erre|esse|tê|u|vê|dâblio|xis|ípsilon|zê',an:['gato','cão','vaca','porco','peixe','pato','cavalo','leão','sapo','urso','rato','mocho'],play:'Jogar',hiS:'Olá! O que vamos jogar?',who:'Quem vai jogar?',addP:'Novo jogador',hi:'Olá {n}! O que vamos jogar?',acts:{pop:'Bolhas',count:'Contar',quick:'Olhar rápido',more:'Mais',add:'Somar',sub:'Tirar'},popQ:'Rebenta as bolhas e conta!',popDone:'{n} bolhas!',countQ:'Quantos há?',quickQ:'Olha depressa! Quantos são?',moreQ:'Que lado tem mais?',addA:'Aqui estão {a}.',addB:'E mais {b}!',addQ:'Quantos são agora?',subA:'Aqui estão {a}.',subB:'Adeus a {b}!',subQ:'Quantos ficaram?',together:'Vamos contar juntos.',isN:'São {n}!',isOne:'É 1!',moreThan:'{a} é mais do que {b}.',praise:['Sim!','Conseguiste!','Muito bem!','Isso mesmo!'],again:'Agora tu.',star:'Ganhaste uma estrela!',home:'Início',up:'Vamos tentar mais difíceis!'},
-sv:{code:'sv-SE',grpN:'Siffror',grpL:'Bokstäver',w:{abc:'ABC',name:'Mitt namn',animals:'Djur'},trBig:'Rita den stora bokstaven!',trSmall:'Nu den lilla!',trName:'Nu skriver vi ditt namn!',nameDone:'Du skrev ditt namn!',trWord:'Nu skriver vi!',follow:'Följ den prickade linjen.',ln:'a|be|se|de|e|eff|ge|hå|i|ji|kå|ell|emm|enn|o|pe|ku|ärr|ess|te|u|ve|dubbel-ve|ex|y|säta|å|ä|ö',an:['katt','hund','ko','gris','fisk','anka','häst','lejon','groda','björn','mus','uggla'],play:'Spela',hiS:'Hej! Vad ska vi leka?',who:'Vem spelar?',addP:'Ny spelare',hi:'Hej {n}! Vad ska vi leka?',acts:{pop:'Bubblor',count:'Räkna',quick:'Snabbtitt',more:'Flest',add:'Plus',sub:'Minus'},popQ:'Smäll bubblorna och räkna!',popDone:'{n} bubblor!',countQ:'Hur många är det?',quickQ:'Titta snabbt! Hur många?',moreQ:'Vilken sida har flest?',addA:'Här är {a}.',addB:'Och {b} till!',addQ:'Hur många nu?',subA:'Här är {a}.',subB:'Hej då till {b}!',subQ:'Hur många är kvar?',together:'Vi räknar tillsammans.',isN:'Det är {n}!',isOne:'Det är 1!',moreThan:'{a} är fler än {b}.',praise:['Ja!','Du klarade det!','Jättebra!','Precis!'],again:'Nu får du försöka.',star:'Du fick en stjärna!',home:'Hem',up:'Nu provar vi svårare!'},
-nl:{code:'nl-NL',grpN:'Cijfers',grpL:'Letters',w:{abc:'ABC',name:'Mijn naam',animals:'Dieren'},trBig:'Trek de grote letter over!',trSmall:'Nu de kleine!',trName:'We gaan je naam schrijven!',nameDone:'Je hebt je naam geschreven!',trWord:'Laten we het schrijven!',follow:'Volg de stippellijn.',ln:'aa|bee|cee|dee|ee|ef|gee|haa|ie|jee|kaa|el|em|en|oo|pee|kuu|er|es|tee|uu|vee|wee|iks|ypsilon|zet',an:['kat','hond','koe','varken','vis','eend','paard','leeuw','kikker','beer','muis','uil'],play:'Spelen',hiS:'Hoi! Wat gaan we spelen?',who:'Wie speelt er?',addP:'Nieuwe speler',hi:'Hoi {n}! Wat gaan we spelen?',acts:{pop:'Bellen',count:'Tellen',quick:'Snel kijken',more:'Meer',add:'Erbij',sub:'Eraf'},popQ:'Prik de bellen en tel!',popDone:'{n} bellen!',countQ:'Hoeveel zijn er?',quickQ:'Kijk snel! Hoeveel?',moreQ:'Welke kant heeft meer?',addA:'Hier zijn er {a}.',addB:'En nog {b} erbij!',addQ:'Hoeveel nu?',subA:'Hier zijn er {a}.',subB:'Dag dag, {b}!',subQ:'Hoeveel zijn er over?',together:'Laten we samen tellen.',isN:'Het zijn er {n}!',isOne:'Het is er 1!',moreThan:'{a} is meer dan {b}.',praise:['Ja!','Goed zo!','Knap gedaan!','Precies!'],again:'Probeer jij maar.',star:'Je hebt een ster verdiend!',home:'Thuis',up:'Nu proberen we moeilijkere!'}};
+en:{code:'en-GB',grown:'Grown-ups',grpN:'Numbers',grpL:'Letters',w:{abc:'ABC',name:'My name',animals:'Animals'},trBig:'Trace the big letter!',trSmall:'Now the small one!',trName:"Let's write your name!",nameDone:'You wrote your name!',trWord:"Let's write it!",follow:'Follow the dotted line.',ln:'ay|bee|see|dee|ee|ef|jee|aitch|eye|jay|kay|el|em|en|oh|pee|cue|ar|ess|tee|you|vee|double you|ex|why|zed',an:['cat','dog','cow','pig','fish','duck','horse','lion','frog','bear','mouse','owl'],play:'Play',hiS:'Hi! What shall we play?',who:"Who's playing?",addP:'Add player',hi:'Hi {n}! What shall we play?',acts:{pop:'Bubbles',count:'Count',quick:'Quick look',more:'More',add:'Add',sub:'Take away'},popQ:'Pop the bubbles and count!',popDone:'{n} bubbles!',countQ:'How many are there?',quickQ:'Look quickly! How many?',moreQ:'Which side has more?',addA:'Here are {a}.',addB:'And {b} more!',addQ:'How many now?',subA:'Here are {a}.',subB:'Bye-bye to {b}!',subQ:'How many are left?',together:"Let's count together.",isN:"It's {n}!",isOne:"It's 1!",moreThan:'{a} is more than {b}.',praise:['Yes!','You got it!','Great counting!',"That's right!"],again:'Now you try.',star:'You earned a star!',home:'Home',up:"Ooh, let's try harder ones!"},
+pt:{code:'pt-PT',grown:'Adultos',grpN:'Números',grpL:'Letras',w:{abc:'ABC',name:'O meu nome',animals:'Animais'},trBig:'Desenha a letra grande!',trSmall:'Agora a pequenina!',trName:'Vamos escrever o teu nome!',nameDone:'Escreveste o teu nome!',trWord:'Vamos escrever!',follow:'Segue o tracejado.',ln:'á|bê|cê|dê|é|efe|guê|agá|i|jota|capa|ele|eme|ene|ó|pê|quê|erre|esse|tê|u|vê|dâblio|xis|ípsilon|zê',an:['gato','cão','vaca','porco','peixe','pato','cavalo','leão','sapo','urso','rato','mocho'],play:'Jogar',hiS:'Olá! O que vamos jogar?',who:'Quem vai jogar?',addP:'Novo jogador',hi:'Olá {n}! O que vamos jogar?',acts:{pop:'Bolhas',count:'Contar',quick:'Olhar rápido',more:'Mais',add:'Somar',sub:'Tirar'},popQ:'Rebenta as bolhas e conta!',popDone:'{n} bolhas!',countQ:'Quantos há?',quickQ:'Olha depressa! Quantos são?',moreQ:'Que lado tem mais?',addA:'Aqui estão {a}.',addB:'E mais {b}!',addQ:'Quantos são agora?',subA:'Aqui estão {a}.',subB:'Adeus a {b}!',subQ:'Quantos ficaram?',together:'Vamos contar juntos.',isN:'São {n}!',isOne:'É 1!',moreThan:'{a} é mais do que {b}.',praise:['Sim!','Conseguiste!','Muito bem!','Isso mesmo!'],again:'Agora tu.',star:'Ganhaste uma estrela!',home:'Início',up:'Vamos tentar mais difíceis!'},
+sv:{code:'sv-SE',grown:'Vuxna',grpN:'Siffror',grpL:'Bokstäver',w:{abc:'ABC',name:'Mitt namn',animals:'Djur'},trBig:'Rita den stora bokstaven!',trSmall:'Nu den lilla!',trName:'Nu skriver vi ditt namn!',nameDone:'Du skrev ditt namn!',trWord:'Nu skriver vi!',follow:'Följ den prickade linjen.',ln:'a|be|se|de|e|eff|ge|hå|i|ji|kå|ell|emm|enn|o|pe|ku|ärr|ess|te|u|ve|dubbel-ve|ex|y|säta|å|ä|ö',an:['katt','hund','ko','gris','fisk','anka','häst','lejon','groda','björn','mus','uggla'],play:'Spela',hiS:'Hej! Vad ska vi leka?',who:'Vem spelar?',addP:'Ny spelare',hi:'Hej {n}! Vad ska vi leka?',acts:{pop:'Bubblor',count:'Räkna',quick:'Snabbtitt',more:'Flest',add:'Plus',sub:'Minus'},popQ:'Smäll bubblorna och räkna!',popDone:'{n} bubblor!',countQ:'Hur många är det?',quickQ:'Titta snabbt! Hur många?',moreQ:'Vilken sida har flest?',addA:'Här är {a}.',addB:'Och {b} till!',addQ:'Hur många nu?',subA:'Här är {a}.',subB:'Hej då till {b}!',subQ:'Hur många är kvar?',together:'Vi räknar tillsammans.',isN:'Det är {n}!',isOne:'Det är 1!',moreThan:'{a} är fler än {b}.',praise:['Ja!','Du klarade det!','Jättebra!','Precis!'],again:'Nu får du försöka.',star:'Du fick en stjärna!',home:'Hem',up:'Nu provar vi svårare!'},
+nl:{code:'nl-NL',grown:'Ouders',grpN:'Cijfers',grpL:'Letters',w:{abc:'ABC',name:'Mijn naam',animals:'Dieren'},trBig:'Trek de grote letter over!',trSmall:'Nu de kleine!',trName:'We gaan je naam schrijven!',nameDone:'Je hebt je naam geschreven!',trWord:'Laten we het schrijven!',follow:'Volg de stippellijn.',ln:'aa|bee|cee|dee|ee|ef|gee|haa|ie|jee|kaa|el|em|en|oo|pee|kuu|er|es|tee|uu|vee|wee|iks|ypsilon|zet',an:['kat','hond','koe','varken','vis','eend','paard','leeuw','kikker','beer','muis','uil'],play:'Spelen',hiS:'Hoi! Wat gaan we spelen?',who:'Wie speelt er?',addP:'Nieuwe speler',hi:'Hoi {n}! Wat gaan we spelen?',acts:{pop:'Bellen',count:'Tellen',quick:'Snel kijken',more:'Meer',add:'Erbij',sub:'Eraf'},popQ:'Prik de bellen en tel!',popDone:'{n} bellen!',countQ:'Hoeveel zijn er?',quickQ:'Kijk snel! Hoeveel?',moreQ:'Welke kant heeft meer?',addA:'Hier zijn er {a}.',addB:'En nog {b} erbij!',addQ:'Hoeveel nu?',subA:'Hier zijn er {a}.',subB:'Dag dag, {b}!',subQ:'Hoeveel zijn er over?',together:'Laten we samen tellen.',isN:'Het zijn er {n}!',isOne:'Het is er 1!',moreThan:'{a} is meer dan {b}.',praise:['Ja!','Goed zo!','Knap gedaan!','Precies!'],again:'Probeer jij maar.',star:'Je hebt een ster verdiend!',home:'Thuis',up:'Nu proberen we moeilijkere!'}};
 // level tables: max number per level (4 levels)
 const SK={pop:[3,4,6,10],count:[3,5,7,10],quick:[3,5,6,10],more:[5,6,8,10],add:[3,5,7,10],sub:[3,5,7,10]};
 const BY_AGE={2:['pop','count'],4:['count','quick','more','add','pop'],5:['count','quick','more','add','sub']};
@@ -343,9 +346,9 @@ function unlock(){
 /* ---------- screens ---------- */
 function show(id){hush();document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id))}
 function renderWho(){
- $('#whoQ').textContent=T().who;
+ $('#whoQ').textContent=T().who;$('#gear0').textContent=T().grown;
  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
- $('#players').innerHTML=S.players.map((p,i)=>`<button class="pcard" data-i="${i}"><span class="peb" style="background:${p.color}">${esc(p.name[0]||'?').toUpperCase()}</span><b>${esc(p.name)}</b><small><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-2px"><use href="#gstar"/></svg> ${p.stars}</small><span class="play">▶ ${T().play}</span></button>`).join('')+`<button class="pcard new" id="newP"><span>+</span>${T().addP}</button>`;
+ $('#players').innerHTML=S.players.map((p,i)=>`<div class="pcard" role="button" tabindex="0" data-i="${i}"><span class="peb" style="background:${p.color}">${esc(p.name[0]||'?').toUpperCase()}</span><b>${esc(p.name)}</b><small><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-2px"><use href="#gstar"/></svg> ${p.stars}</small><span class="play">▶ ${T().play}</span></div>`).join('')+`<div class="pcard new" role="button" tabindex="0" id="newP"><span>+</span>${T().addP}</div>`;
  show('who');
 }
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -357,12 +360,12 @@ function renderHome(){
    :k==='more'?`<svg class="pic" viewBox="0 0 100 86"><use href="#shell" x="0" y="18" width="34" height="34" style="color:${o[1]}"/><use href="#shell" x="54" y="4" width="30" height="30" style="color:${o[1]}"/><use href="#shell" x="66" y="40" width="30" height="30" style="color:${o[1]}"/><use href="#shell" x="50" y="56" width="26" height="26" style="color:${o[1]}"/></svg>`
    :k==='quick'?`<svg class="pic" viewBox="0 0 100 86"><rect x="18" y="6" width="64" height="64" rx="14" fill="var(--sea)"/><g fill="#fff"><circle cx="34" cy="22" r="7"/><circle cx="50" cy="38" r="7"/><circle cx="66" cy="54" r="7"/></g></svg>`
    :`<svg class="pic" viewBox="0 0 100 86"><use href="#${o[0]}" x="4" y="14" width="48" height="48" style="color:${o[1]}"/><use href="#${o[0]}" x="48" y="14" width="48" height="48" style="color:${k==='sub'?'#bbb':k==='add'?'#2a9d8f':o[1]}"/>${k==='add'?'<text x="50" y="84" text-anchor="middle" font-size="26" font-weight="800" fill="var(--coral)">+</text>':k==='sub'?'<text x="50" y="84" text-anchor="middle" font-size="26" font-weight="800" fill="var(--coral)">−</text>':''}</svg>`;
-  return `<button class="act" data-k="${k}">${pic}<b>${t.acts[k]}</b><span class="pips">${[0,1,2,3].map(j=>`<i class="${j<=s.lv?'on':''}"></i>`).join('')}</span></button>`}).join('');
+  return `<div class="act" role="button" tabindex="0" data-k="${k}">${pic}<b>${t.acts[k]}</b><span class="pips">${[0,1,2,3].map(j=>`<i class="${j<=s.lv?'on':''}"></i>`).join('')}</span></div>`}).join('');
  const wpic={abc:`<svg class="pic" viewBox="0 0 100 86"><text x="50" y="66" text-anchor="middle" font-size="64" font-weight="800" fill="#ff6b4a">A<tspan fill="#0f7c8c">a</tspan></text></svg>`,
   name:`<span class="peb" style="background:${P.color}">${esc(P.name[0]||'?').toUpperCase()}</span>`,
   animals:`<span class="emo">${ANIMOJI[(wr().an[S.lang]||0)%ANIMOJI.length]}</span>`};
  $('#acts').insertAdjacentHTML('afterbegin',`<span class="grp">${t.grpN}</span>`);
- $('#acts').insertAdjacentHTML('beforeend',`<span class="grp">${t.grpL}</span>`+WKINDS.map(k=>`<button class="act" data-k="${k}">${wpic[k]}<b>${t.w[k]}</b></button>`).join(''));
+ $('#acts').insertAdjacentHTML('beforeend',`<span class="grp">${t.grpL}</span>`+WKINDS.map(k=>`<div class="act" role="button" tabindex="0" data-k="${k}">${wpic[k]}<b>${t.w[k]}</b></div>`).join(''));
  $('#shelf').innerHTML=(P.stickers||[]).slice(-24).map(s=>`<svg viewBox="0 0 100 100" style="color:${s[1]}"><use href="#${s[0]}"/></svg>`).join('');
  show('home');save();
  bubble(fill(t.hi,{n:P.name}));
@@ -661,12 +664,13 @@ let rsT=null;window.addEventListener('resize',()=>{if(!$('#write').classList.con
 /* ---------- grown-ups ---------- */
 function renderGrown(){
  $('#lang').value=S.lang;$('#voiceOn').checked=S.voice;$('#sfxOn').checked=S.sfx!==false;pickVoice();
- $('#gPlayers').innerHTML=S.players.length?S.players.map((p,i)=>`<div class="pl"><div class="row" style="justify-content:space-between;margin:0"><b style="font-size:20px">${esc(p.name)} <span class="note">age ${p.age===2?'2–3':p.age===5?'5–7':'4'} · ${p.stars} stars</span></b><button class="btn ghost" data-del="${i}">Delete</button></div>
+ $('#gPlayers').innerHTML=S.players.length?S.players.map((p,i)=>`<div class="pl"><div class="row" style="justify-content:space-between;margin:0"><input data-ren="${i}" value="${esc(p.name)}" maxlength="14" autocorrect="off" autocapitalize="words" spellcheck="false" aria-label="Name" style="font-weight:800;width:9em"><b style="font-size:20px"><span class="note">age ${p.age===2?'2–3':p.age===5?'5–7':'4'} · ${p.stars} stars</span></b><button class="btn ghost" data-del="${i}">Delete</button></div>
   <table><tr><th>Skill</th><th class="r">Level</th><th class="r">Right first try</th></tr>${BY_AGE[p.age].map(k=>{const s=p.skills[k];return `<tr><td>${L.en.acts[k]}</td><td class="r">${s?s.lv+1:1} / 4</td><td class="r">${s&&s.n?Math.round(s.ok/s.n*100)+'% of '+s.n:'not played'}</td></tr>`}).join('')}</table>
   <p class="note">Letters (${S.lang.toUpperCase()}): ABC ${(()=>{const A=ALPHA[S.lang],i=(p.wr&&p.wr.abc[S.lang])||0;return i>=A.length?'all done':'up to '+A[i]})()} · animals written ${(p.wr&&p.wr.an[S.lang])||0} · name written ${(p.wr&&p.wr.names)||0}×</p>
   <div class="row"><span class="note">Age group:</span>${[2,4,5].map(a=>`<button class="btn ghost" data-age="${i}:${a}" style="${p.age===a?'outline:3px solid var(--coral)':''}">${a===2?'2–3':a===5?'5–7':'4'}</button>`).join('')}</div></div>`).join(''):'<p class="note">No players yet.</p>';
  show('grown');
 }
+$('#gPlayers').onchange=e=>{const r=e.target.closest('[data-ren]');if(!r)return;const n=r.value.trim();if(n){S.players[+r.dataset.ren].name=n;save()}else r.value=S.players[+r.dataset.ren].name};
 $('#gPlayers').onclick=e=>{
  const d=e.target.closest('[data-del]'),a=e.target.closest('[data-age]');
  if(d){if(d.dataset.sure){S.players.splice(+d.dataset.del,1);save();renderGrown()}else{d.dataset.sure=1;d.textContent='Tap again to delete';d.style.background='var(--coral)';d.style.color='#fff'}}
@@ -720,6 +724,7 @@ function openGate(){
 $('#gCancel').onclick=()=>$('#gate').classList.remove('on');
 $('#gear').onclick=openGate;$('#gear0').onclick=openGate;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hush()});
+document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[role=button]');if(b&&(e.key==='Enter'||e.key===' ')){e.preventDefault();b.click()}});
 renderWho();
 (async()=>{for(const l of [S.lang,...['pt','sv','nl','en'].filter(x=>x!==S.lang)])await loadClips(l)})();
 try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}

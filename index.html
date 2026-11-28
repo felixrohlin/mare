@@ -499,7 +499,7 @@ const FONT='ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Nunito","Varela
 const ALPHA={en:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',pt:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',nl:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',sv:'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ'};
 const ANIMOJI=['🐱','🐶','🐮','🐷','🐟','🦆','🐴','🦁','🐸','🐻','🐭','🦉'];
 const WKINDS=['abc','name','animals'];
-const THR={2:.45,4:.6,5:.7};          // share of the letter that must be coloured in, per age group
+const THR={2:.8,4:.93,5:.96};         // share of the letter's parts that must be traced, per age group
 const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5];
 const gc=$('#wGuide'),ic=$('#wInk'),gx=gc.getContext('2d'),ix=ic.getContext('2d');
 let WS=null,pen=null;window.__mareWS=()=>WS;
@@ -529,8 +529,12 @@ function glyph(ch,cx,cy,S){
  o.lineWidth=brush*1.6;o.lineJoin='round';o.strokeText(ch,x,y);const allow=o.getImageData(0,0,Wd,Ht).data;
  const step=Math.max(4,S/34),samples=[];
  for(let yy=bb.y0;yy<=bb.y1;yy+=step)for(let xx=bb.x0;xx<=bb.x1;xx+=step){const xi=xx|0,yi=yy|0;if(xi>=0&&yi>=0&&xi<Wd&&yi<Ht&&fill[(yi*Wd+xi)*4+3]>128)samples.push({x:xx,y:yy,c:0})}
- let st=samples[0]||{x:cx,y:cy};for(const p of samples)if(p.y<st.y-step/2||(Math.abs(p.y-st.y)<=step/2&&p.x<st.x))st=p;
- return {ch,x,y,font,bb,brush,samples,allow,Wd,start:st,cov:0,inn:0,out:0,done:false,hue:0};
+ // cut the letter into small cells (about one finger-width each); every cell has to be passed through
+ const cs=brush,cm=new Map();
+ for(const p of samples){const k=((p.x/cs)|0)+','+((p.y/cs)|0);const c=cm.get(k)||{x:0,y:0,n:0};c.x+=p.x;c.y+=p.y;c.n++;cm.set(k,c)}
+ const cells=[...cm.values()].filter(c=>c.n>=3).map(c=>({x:c.x/c.n,y:c.y/c.n,c:0}));
+ let st=cells[0]||{x:cx,y:cy};for(const c of cells)if(c.y<st.y-cs/2||(Math.abs(c.y-st.y)<=cs/2&&c.x<st.x))st=c;
+ return {ch,x,y,font,bb,brush,cells,allow,Wd,start:st,cov:0,inn:0,out:0,done:false,hue:0};
 }
 async function openPage(intro){
  const t=T(),ep=epoch,key=WS.k+':'+(WS.k==='abc'?WS.i:WS.pos);
@@ -577,15 +581,18 @@ function drawGuide(){
  });
 }
 function clearInk(){ix.clearRect(0,0,WS.cw,WS.ch)}
-function resetG(g){g.cov=0;g.inn=0;g.out=0;g.samples.forEach(p=>p.c=0)}
-function placeDot(){const d=$('#sdot'),g=WS.glyphs[WS.act];if(!g){d.style.display='none';return}d.style.left=g.start.x+'px';d.style.top=g.start.y+'px';d.style.display='block'}
+function resetG(g){g.cov=0;g.inn=0;g.out=0;g.cells.forEach(p=>p.c=0)}
+function placeDot(at){const d=$('#sdot'),g=WS.glyphs[WS.act];if(!g){d.style.display='none';return}const p=at||g.start;d.style.left=p.x+'px';d.style.top=p.y+'px';d.style.display='block'}
+// after the finger lifts, show where the untraced part is: the nearest cell not yet passed
+function nextGap(g,from){let best=null,bd=1e9;for(const c of g.cells)if(!c.c){const d=Math.hypot(c.x-from.x,c.y-from.y);if(d<bd){bd=d;best=c}}return best}
 function ptr(e){const r=ic.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,L2=dx*dx+dy*dy;let t=L2?((p.x-a.x)*dx+(p.y-a.y)*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy))}
 function ink(g,a,b){
- ix.strokeStyle=`hsl(${pen.hue},95%,55%)`;ix.lineWidth=g.brush*.9;ix.lineCap='round';ix.lineJoin='round';
+ ix.strokeStyle=`hsl(${pen.hue},95%,55%)`;ix.lineWidth=g.brush*.75;ix.lineCap='round';ix.lineJoin='round';
  ix.beginPath();ix.moveTo(a.x,a.y);ix.lineTo(b.x,b.y);ix.stroke();
- const d=Math.hypot(b.x-a.x,b.y-a.y),r=g.brush*.8;
- for(const p of g.samples)if(!p.c&&segDist(p,a,b)<r){p.c=1;g.cov++}
+ const d=Math.hypot(b.x-a.x,b.y-a.y),r=g.brush*.7;
+ for(const p of g.cells)if(!p.c&&segDist(p,a,b)<r){p.c=1;g.cov++}
+ WS.last=b;
  for(let s=0;s<=d;s+=6){const t=d?s/d:0,x=(a.x+(b.x-a.x)*t)|0,y=(a.y+(b.y-a.y)*t)|0;if(x>=0&&y>=0&&x<g.Wd&&y<WS.ch&&g.allow[(y*g.Wd+x)*4+3]>100)g.inn++;else g.out++}
  pen.hue=(pen.hue+d*.6)%360;WS.hue=pen.hue;pen.dist+=d;
  if(pen.dist>30){pen.dist=0;note()}
@@ -595,21 +602,23 @@ function note(){if(S.sfx===false)return;noteI=(noteI+1)%(PENTA.length*2-2);const
 ic.addEventListener('pointerdown',e=>{
  if(!WS||WS.lock)return;const g=WS.glyphs[WS.act];if(!g)return;e.preventDefault();
  try{ic.setPointerCapture(e.pointerId)}catch(_){}
- const p=ptr(e);pen={id:e.pointerId,x:p.x,y:p.y,dist:0,hue:WS.hue||rnd(0,359)};$('#sdot').style.display='none';
+ clearTimeout(WS.pend);const p=ptr(e);pen={id:e.pointerId,x:p.x,y:p.y,dist:0,hue:WS.hue||rnd(0,359)};$('#sdot').style.display='none';
  ink(g,p,{x:p.x+.1,y:p.y+.1});note();
 });
 ic.addEventListener('pointermove',e=>{
  if(!pen||e.pointerId!==pen.id)return;e.preventDefault();const g=WS.glyphs[WS.act];if(!g)return;
  const evs=(e.getCoalescedEvents&&e.getCoalescedEvents())||[];
  for(const ev of (evs.length?evs:[e])){const p=ptr(ev);ink(g,{x:pen.x,y:pen.y},p);pen.x=p.x;pen.y=p.y}
- if(g.cov/Math.max(1,g.samples.length)>=.93)check(true);
 });
-['pointerup','pointercancel'].forEach(v=>ic.addEventListener(v,e=>{if(!pen||e.pointerId!==pen.id)return;pen=null;check(true)}));
+// wait a moment after the finger lifts: a letter with several strokes (A, E, k) needs the finger lifted in between
+['pointerup','pointercancel'].forEach(v=>ic.addEventListener(v,e=>{if(!pen||e.pointerId!==pen.id)return;pen=null;clearTimeout(WS.pend);WS.pend=setTimeout(()=>check(true),450)}));
 function check(lift){
- const g=WS.glyphs[WS.act];if(!g||g.done||WS.lock)return;
- const ratio=g.cov/Math.max(1,g.samples.length),thr=THR[P.age]||.6;
- if(ratio>=thr&&lift){pen=null;glyphDone(g);return}
- if(lift&&g.out>50&&g.out/(g.inn+g.out)>.55){clearInk();resetG(g);placeDot();sfx('no');say(T().follow)}
+ const g=WS.glyphs[WS.act];if(!g||g.done||WS.lock||!$('#write').classList.contains('on'))return;
+ if(pen)return;
+ const ratio=g.cov/Math.max(1,g.cells.length),thr=THR[P.age]||.93,messy=g.out>50&&g.out/(g.inn+g.out)>.5;
+ if(ratio>=thr&&!messy){glyphDone(g);return}
+ if(messy){clearInk();resetG(g);placeDot();sfx('no');say(T().follow);return}
+ const gap=nextGap(g,WS.last||g.start);if(gap)placeDot(gap);
 }
 function burst(g){
  return new Promise(res=>{
@@ -644,7 +653,7 @@ async function pageDone(){
  if(ep!==epoch)return;await wait(400);if(ep!==epoch)return;reward();
 }
 $('#wTop').onclick=e=>{const b=e.target.closest('button.lt');if(!b||!WS||WS.k!=='abc')return;const i=+b.dataset.i;if(i>(wr().abc[S.lang]||0))return;hush();WS.i=i;openPage(true)};
-$('#wClear').onclick=()=>{const g=WS&&WS.glyphs[WS.act];if(!g)return;clearInk();resetG(g);placeDot();sfx('tap')};
+$('#wClear').onclick=()=>{const g=WS&&WS.glyphs[WS.act];if(!g)return;clearTimeout(WS.pend);clearInk();resetG(g);placeDot();sfx('tap')};
 $('#wHear').onclick=()=>{if(!WS)return;hush();if(WS.k==='abc'){const U=ALPHA[S.lang][WS.i];sayLetter(U,U+' '+U.toLowerCase())}else if(WS.k==='animals'&&WS.pos===0){bubble(WS.word.join(''));say(T().an[WS.i],false)}else sayLetter(WS.word[WS.pos])};
 $('#wBack').onclick=()=>renderHome();
 let rsT=null;window.addEventListener('resize',()=>{if(!$('#write').classList.contains('on')||!WS)return;clearTimeout(rsT);rsT=setTimeout(()=>openPage(false),200)});
